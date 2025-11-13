@@ -1007,17 +1007,181 @@ function stopTablature() {
     }
 }
 
+// Global variable to store chord shapes
+let chordShapesData = {};
+
+// Load chord shapes from JSON file
+async function loadChordShapes() {
+    try {
+        const response = await fetch('/chord_shapes.json');
+        if (!response.ok) {
+            console.error('Failed to load chord shapes');
+            return;
+        }
+        chordShapesData = await response.json();
+        console.log('Chord shapes loaded successfully');
+    } catch (error) {
+        console.error('Error loading chord shapes:', error);
+    }
+}
+
+// Render a chord diagram using SVGuitar
+function renderChordDiagram(chordData, targetDivId) {
+    const targetElement = document.querySelector(targetDivId);
+    if (!targetElement) {
+        console.error("SVGuitar Target Element not found:", targetDivId);
+        return;
+    }
+
+    // Clear the target div
+    targetElement.innerHTML = "";
+
+    // Initialize the SVGuitar chart
+    const chart = new SVGuitarChord(targetDivId);
+
+    // Configure and draw the chart
+    chart.chord({
+        frets: chordData.frets,
+        fingers: chordData.fingers,
+        barres: chordData.barres || [],
+        title: chordData.title
+    }).draw();
+}
+
+// Initialize the Circle of Fifths and harmony section
+function initializeKeyHarmonySection() {
+    const circleOfFifths = document.querySelector('.circle-of-fifths');
+    if (!circleOfFifths) return;
+
+    // Circle of fifths keys in order
+    const keys = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F'];
+    
+    // Position keys in a circle
+    const radius = 120;
+    const centerX = 150;
+    const centerY = 150;
+    
+    keys.forEach((key, index) => {
+        const angle = (index * 30 - 90) * (Math.PI / 180); // 30 degrees apart, start at top
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        
+        const keyButton = document.createElement('button');
+        keyButton.className = 'key-button';
+        keyButton.textContent = key;
+        keyButton.style.left = `${x}px`;
+        keyButton.style.top = `${y}px`;
+        keyButton.style.transform = 'translate(-50%, -50%)';
+        
+        keyButton.addEventListener('click', () => selectKey(key, keyButton));
+        circleOfFifths.appendChild(keyButton);
+    });
+    
+    // Select C major by default
+    setTimeout(() => {
+        const cButton = circleOfFifths.querySelector('.key-button');
+        if (cButton) cButton.click();
+    }, 100);
+}
+
+// Handle key selection
+function selectKey(key, buttonElement) {
+    // Remove active class from all key buttons
+    document.querySelectorAll('.key-button').forEach(btn => btn.classList.remove('active'));
+    buttonElement.classList.add('active');
+    
+    // Get diatonic chords using Tonal.js
+    const scale = Tonal.Scale.get(`${key} major`);
+    const chordNames = scale.notes.map((note, index) => {
+        // Build triads: I, ii, iii, IV, V, vi, vii°
+        const quality = ['', 'm', 'm', '', '', 'm', 'dim'][index];
+        return note + quality;
+    });
+    
+    // Display diatonic chords
+    const chordDisplay = document.getElementById('diatonic-chords-display');
+    if (chordDisplay) {
+        chordDisplay.innerHTML = '';
+        const romanNumerals = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+        
+        chordNames.forEach((chordName, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'diatonic-chord-btn px-4 py-2 bg-white border-2 border-gray-300 rounded-lg font-semibold hover:border-indigo-500 hover:text-indigo-600';
+            btn.innerHTML = `<span class="text-xs text-gray-500">${romanNumerals[index]}</span><br>${chordName}`;
+            btn.addEventListener('click', () => displayChord(chordName, btn));
+            chordDisplay.appendChild(btn);
+        });
+    }
+    
+    // Display common progressions
+    displayProgressions(key, chordNames);
+}
+
+// Display a chord diagram
+function displayChord(chordName, buttonElement) {
+    // Remove active class from all chord buttons
+    document.querySelectorAll('.diatonic-chord-btn').forEach(btn => btn.classList.remove('active'));
+    buttonElement.classList.add('active');
+    
+    // Get current instrument
+    const instrumentSelect = document.getElementById('instrumentFilter');
+    const instrumentKey = instrumentSelect ? instrumentSelect.value : 'guitar_6';
+    const instrumentName = '6-String Guitar (EADGBe)'; // Default
+    
+    // Look up chord shape
+    const shapes = chordShapesData[instrumentName];
+    if (!shapes || !shapes[chordName]) {
+        const container = document.getElementById('chord-display-container');
+        if (container) {
+            container.innerHTML = `<p class="text-gray-500 italic">Chord shape not available for ${chordName}</p>`;
+        }
+        return;
+    }
+    
+    // Use first voicing
+    const chordData = shapes[chordName][0];
+    renderChordDiagram(chordData, '#chord-display-container');
+}
+
+// Display common chord progressions
+function displayProgressions(key, chordNames) {
+    const progressionDisplay = document.getElementById('chord-progression-display');
+    if (!progressionDisplay) return;
+    
+    const commonProgressions = [
+        { name: 'I-IV-V', indices: [0, 3, 4] },
+        { name: 'I-V-vi-IV', indices: [0, 4, 5, 3] },
+        { name: 'ii-V-I', indices: [1, 4, 0] },
+        { name: 'I-vi-IV-V', indices: [0, 5, 3, 4] }
+    ];
+    
+    progressionDisplay.innerHTML = '<h4 class="font-semibold text-gray-700 mb-2">Common Progressions:</h4>';
+    
+    commonProgressions.forEach(prog => {
+        const chords = prog.indices.map(i => chordNames[i]).join(' → ');
+        const div = document.createElement('div');
+        div.className = 'text-sm text-gray-600';
+        div.innerHTML = `<strong>${prog.name}:</strong> ${chords}`;
+        progressionDisplay.appendChild(div);
+    });
+}
+
 function initializeAccordions() {
     const accordions = document.querySelectorAll('.accordion-container');
     accordions.forEach(accordion => {
         const header = accordion.querySelector('.accordion-header');
         const content = accordion.querySelector('.accordion-content');
-        const symbol = header.querySelector('.accordion-symbol');
 
         header.addEventListener('click', () => {
-            const isVisible = content.style.display === 'block';
-            content.style.display = isVisible ? 'none' : 'block';
-            symbol.textContent = isVisible ? '+' : '-';
+            const isActive = header.classList.contains('active');
+            
+            if (isActive) {
+                header.classList.remove('active');
+                content.style.maxHeight = null;
+            } else {
+                header.classList.add('active');
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
         });
     });
 }
@@ -1100,8 +1264,8 @@ function initializeControls() {
 
 
 window.onload = async () => {
-    // await loadChordShapes(); // Load chord data first - This function does not exist
+    await loadChordShapes(); // Load chord data first - This function does not exist
     initializeControls(); // Setup controls and run initial generation
-    // initializeKeyHarmonySection(); // Setup the interactive harmony section - This function does not exist
+    initializeKeyHarmonySection(); // Setup the interactive harmony section - This function does not exist
     initializeAccordions(); // Initialize all accordion elements
 };
