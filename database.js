@@ -1,6 +1,6 @@
 // Part II: Definitive Instrument Tuning Database
 // This will be expanded with MIDI values and more instruments as per the blueprint.
-const TUNINGS = {
+export const TUNINGS = {
     'Mandolin (GDAE)': [
         { string: 1, note_index: 4, octave: 5, thickness: 1, open_note: "E5", label: "E" },
         { string: 2, note_index: 9, octave: 4, thickness: 2, open_note: "A4", label: "A" },
@@ -48,7 +48,7 @@ const TUNINGS = {
 
 // Part III: Comprehensive Scale and Mode Library
 // This will be used to populate the UI and query Tonal.js
-const SCALES = {
+export const SCALES = {
     'Common': {
         'Major': 'major',
         'Natural Minor': 'aeolian',
