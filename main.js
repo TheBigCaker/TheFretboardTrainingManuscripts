@@ -585,7 +585,7 @@ function getRootOptions() {
 }
 
 function buildInstrumentData(instrumentKey, rootIndex, scaleIntervals) {
-    const tuning = TUNINGS[instrumentKey];
+    const tuning = TUNINGS[instrumentKey].tuning;
     const fretboardData = [];
     
     // Determine number of frets to display
@@ -973,10 +973,81 @@ function stopTablature() {
     }
 }
 
+function initializeControls() {
+    const instrumentSelect = document.getElementById('instrumentFilter');
+    const rootSelect = document.getElementById('rootSelect');
+    const modeSelect = document.getElementById('modeSelect');
+    const generateBtn = document.getElementById('generate-btn');
+
+    // Populate Instruments
+    for (const key in TUNINGS) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = TUNINGS[key].name;
+        instrumentSelect.appendChild(option);
+    }
+
+    // Populate Root Notes
+    const rootOptions = getRootOptions();
+    for (const name in rootOptions) {
+        const option = document.createElement('option');
+        option.value = rootOptions[name];
+        option.textContent = name;
+        rootSelect.appendChild(option);
+    }
+
+    // Populate Scales/Modes
+    for (const category in SCALES) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = category;
+        for (const scale of SCALES[category]) {
+            const option = document.createElement('option');
+            option.value = scale.intervals.join(',');
+            option.textContent = scale.name;
+            optgroup.appendChild(option);
+        }
+        modeSelect.appendChild(optgroup);
+    }
+
+    const generate = () => {
+        const instrumentKey = instrumentSelect.value;
+        const rootIndex = parseInt(rootSelect.value, 10);
+        const scaleIntervals = modeSelect.value.split(',').map(Number);
+        const handedness = document.getElementById('handedness').value;
+        const showNotes = document.getElementById('show-notes').checked;
+        const orientation = document.querySelector('input[name="orientation"]:checked').value;
+
+        const fretboardData = buildInstrumentData(instrumentKey, rootIndex, scaleIntervals);
+        const outputDiv = document.getElementById('fretboard-output');
+        outputDiv.innerHTML = ''; // Clear previous output
+
+        if (orientation === 'both' || orientation === '1') {
+            const table1 = renderTable1(fretboardData, rootSelect.options[rootSelect.selectedIndex].text, modeSelect.options[modeSelect.selectedIndex].text, showNotes);
+            outputDiv.innerHTML += table1;
+        }
+        if (orientation === 'both' || orientation === '2') {
+            const table2 = renderTable2(fretboardData, rootSelect.options[rootSelect.selectedIndex].text, modeSelect.options[modeSelect.selectedIndex].text, handedness, showNotes);
+            outputDiv.innerHTML += table2;
+        }
+    };
+
+    generateBtn.addEventListener('click', generate);
+    instrumentSelect.addEventListener('change', generate);
+    rootSelect.addEventListener('change', generate);
+    modeSelect.addEventListener('change', generate);
+    document.getElementById('handedness').addEventListener('change', generate);
+    document.getElementById('show-notes').addEventListener('change', generate);
+    document.querySelectorAll('input[name="orientation"]').forEach(radio => {
+        radio.addEventListener('change', generate);
+    });
+
+    generate(); // Initial generation
+}
+
 
 window.onload = async () => {
-    await loadChordShapes(); // Load chord data first
+    // await loadChordShapes(); // Load chord data first - This function does not exist
     initializeControls(); // Setup controls and run initial generation
-    initializeKeyHarmonySection(); // Setup the interactive harmony section
-    initializeAccordions(); // Initialize all accordion elements
+    // initializeKeyHarmonySection(); // Setup the interactive harmony section - This function does not exist
+    // initializeAccordions(); // Initialize all accordion elements - This function does not exist
 };
