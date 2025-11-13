@@ -1,0 +1,87 @@
+{
+  "6-String Guitar (EADGBe)": {
+    "C": [
+      {
+        "name": "Open",
+        "frets": [-1, 3, 2, 0, 1, 0],
+        "fingers": [0, 3, 2, 0, 1, 0],
+        "barres": [],
+        "title": "C Major (Open)"
+      },
+      {
+        "name": "A-Shape Barre",
+        "frets": [-1, 3, 5, 5, 5, 3],
+        "fingers": [0, 1, 3, 4, 4, 1],
+        "barres": [
+          { "from": 5, "to": 1, "fret": 3 }
+        ],
+        "title": "C Major (A-Shape)"
+      },
+      {
+        "name": "E-Shape Barre",
+        "frets": [8, 10, 10, 9, 8, 8],
+        "fingers": [1, 3, 4, 2, 1, 1],
+        "barres": [
+          { "from": 6, "to": 1, "fret": 8 }
+        ],
+        "title": "C Major (E-Shape)"
+      }
+    ],
+    "Am": [
+      {
+        "name": "Open",
+        "frets": [-1, 0, 2, 2, 1, 0],
+        "fingers": [0, 0, 2, 3, 1, 0],
+        "barres": [],
+        "title": "A minor (Open)"
+      }
+    ],
+    "G": [
+      {
+        "name": "Open",
+        "frets": [3, 2, 0, 0, 0, 3],
+        "fingers": [3, 2, 0, 0, 0, 4],
+        "barres": [],
+        "title": "G Major (Open)"
+      }
+    ],
+    "Em": [
+      {
+        "name": "Open",
+        "frets": [0, 2, 2, 0, 0, 0],
+        "fingers": [0, 2, 3, 0, 0, 0],
+        "barres": [],
+        "title": "E minor (Open)"
+      }
+    ],
+    "D": [
+        {
+            "name": "Open",
+            "frets": [-1, -1, 0, 2, 3, 2],
+            "fingers": [0, 0, 0, 1, 3, 2],
+            "barres": [],
+            "title": "D Major (Open)"
+        }
+    ],
+    "F": [
+        {
+            "name": "E-Shape Barre",
+            "frets": [1, 3, 3, 2, 1, 1],
+            "fingers": [1, 3, 4, 2, 1, 1],
+            "barres": [
+                { "from": 6, "to": 1, "fret": 1 }
+            ],
+            "title": "F Major (Barre)"
+        }
+    ],
+    "Dm": [
+        {
+            "name": "Open",
+            "frets": [-1, -1, 0, 2, 3, 1],
+            "fingers": [0, 0, 0, 2, 3, 1],
+            "barres": [],
+            "title": "D minor (Open)"
+        }
+    ]
+  }
+}
