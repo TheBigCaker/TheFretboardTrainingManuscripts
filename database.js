@@ -105,3 +105,8 @@ export const SCALES = {
         { name: 'Neapolitan Major', intervals: [0, 1, 3, 5, 7, 9, 11] }
     ]
 };
+
+// Part IV: Chord Shape Library (for Chord Diagram Display)
+export const CHORD_SHAPES = {
+    // To be populated from chord_shapes.json
+};
