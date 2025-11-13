@@ -361,16 +361,16 @@ const C_MAJOR_MANDOLIN_8_MEASURE_LOOP = {
     ],
     'G3': [
         // C Major Scale (Pos 1) (M1-2) - 8th notes
-        '5','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M1
-        '5','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M2
+        '0','-','2','-','4','-','-','-','-','-','-','-','-','-','-','-', // M1
+        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M2
         // C Arpeggio (Pos 1) (M3-4) - 8th notes
-        '5','-','-','-','-','-','-','-','5','-','-','-','-','-','-','-', // M3
+        '0','-','-','-','5','-','-','-','0','-','-','-','5','-','-','-', // M3
         '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M4
         // F Arpeggio (Pos 1) (M5-6) - 8th notes
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M5
-        '5','-','-','-','-','-','-','-','5','-','-','-','-','-','-','-', // M6
+        '1','-','-','-','5','-','-','-','1','-','-','-','5','-','-','-', // M5
+        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M6
         // G Arpeggio (Pos 1) (M7-8) - 8th notes
-        '3','-','-','-','-','-','-','-','3','-','-','-','-','-','-','-', // M7
+        '3','-','-','-','7','-','-','-','3','-','-','-','7','-','-','-', // M7
         '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
     ],
     'C2': [
@@ -494,7 +494,7 @@ const C_MAJOR_BANJO_8_MEASURE_LOOP = {
 const C_MAJOR_BANJO_TAB = {
     'G4': [...C_MAJOR_BANJO_8_MEASURE_LOOP['G4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G4']],
     'D4': [...C_MAJOR_BANJO_8_MEASURE_LOOP['D4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D4']],
-    'B3': [...C_MAJOR_BANJO_8_MEASURE_LOOP['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3']],
+    'B3': [...C_major_banjo_8_measure_loop['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3']],
     'G3': [...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3']],
     'D3': [...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3']]
 };
@@ -973,6 +973,21 @@ function stopTablature() {
     }
 }
 
+function initializeAccordions() {
+    const accordions = document.querySelectorAll('.accordion-container');
+    accordions.forEach(accordion => {
+        const header = accordion.querySelector('.accordion-header');
+        const content = accordion.querySelector('.accordion-content');
+        const symbol = header.querySelector('.accordion-symbol');
+
+        header.addEventListener('click', () => {
+            const isVisible = content.style.display === 'block';
+            content.style.display = isVisible ? 'none' : 'block';
+            symbol.textContent = isVisible ? '+' : '-';
+        });
+    });
+}
+
 function initializeControls() {
     const instrumentSelect = document.getElementById('instrumentFilter');
     const rootSelect = document.getElementById('rootSelect');
@@ -1021,6 +1036,11 @@ function initializeControls() {
         const outputDiv = document.getElementById('fretboard-output');
         outputDiv.innerHTML = ''; // Clear previous output
 
+        // Add the GUI fretboard
+        const gui = renderGui(fretboardData, instrumentKey, handedness, showNotes);
+        outputDiv.appendChild(gui);
+
+
         if (orientation === 'both' || orientation === '1') {
             const table1 = renderTable1(fretboardData, rootSelect.options[rootSelect.selectedIndex].text, modeSelect.options[modeSelect.selectedIndex].text, showNotes);
             outputDiv.innerHTML += table1;
@@ -1049,5 +1069,5 @@ window.onload = async () => {
     // await loadChordShapes(); // Load chord data first - This function does not exist
     initializeControls(); // Setup controls and run initial generation
     // initializeKeyHarmonySection(); // Setup the interactive harmony section - This function does not exist
-    // initializeAccordions(); // Initialize all accordion elements - This function does not exist
+    initializeAccordions(); // Initialize all accordion elements
 };
