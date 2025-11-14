@@ -14,7 +14,28 @@ This is an interactive web application that helps musicians:
 
 ## Recent Changes
 
-### November 14, 2025
+### November 14, 2025 (Second Session)
+- **CRITICAL FIX: Sharp/Flat Symbol Display** - Replaced placeholder '?' characters with proper Unicode symbols
+  - Updated CHROMATIC_NOTES array to use ♯ (sharp) and ♭ (flat) instead of '?'
+  - Fixed Circle of Fifths to display F♯, D♭, A♭, E♭, B♭ with proper symbols
+  - All note names throughout UI now display correctly with musical notation
+- **CRITICAL FIX: SVGuitar Chord Diagram Rendering** - Fixed blank chord diagram boxes
+  - Converted chord data format from our frets/fingers arrays to SVGuitar's required fingers array format [[string, fret, label]]
+  - Fixed string numbering: SVGuitar uses 6=thickest to 1=thinnest
+  - Added dynamic string count detection from chord data (supports 4-7 string instruments)
+  - Added console logging for debugging chord data conversion
+  - Chord diagrams now render properly with correct fingering positions
+- **CRITICAL FIX: Dynamic Tablature Regeneration** - Made tablature responsive to dropdown changes
+  - Added event listeners to instrument, root note, and scale/mode dropdowns
+  - Implemented transposeTabData() function to transpose tablature by semitone intervals
+  - Implemented instrument-aware rendering using TUNINGS data from database.js
+  - Normalized string identifiers to use label+octave format (e4, B3, G3, etc.) matching CSV data
+  - Created renderAllPhasesForInstrument() to render tablature for any selected instrument
+  - Tablature now dynamically updates when user changes instrument (guitar/bass/mandolin/banjo), root note, or scale/mode
+  - Supports all instruments: 6/7-string guitar, 4/5-string bass, mandolin, 5-string banjo
+  - Added defensive logging to warn about missing string data during rendering
+
+### November 14, 2025 (First Session)
 - **CRITICAL FIX: Tablature Rendering** - Completely rewrote rendering logic to display proper guitar tablature
   - Changed from string-first iteration (incorrect) to beat-first iteration (correct)
   - Now displays all 6 strings stacked vertically at each beat (standard guitar tab format)

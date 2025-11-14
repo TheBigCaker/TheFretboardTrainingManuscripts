@@ -8,16 +8,16 @@ const NUM_FRETS = 15; // Use a global fret count
 
 const CHROMATIC_NOTES = [
     { name: "C", aliases: [] },
-    { name: "C?", aliases: ["D?"] },
+    { name: "C♯", aliases: ["D♭"] },
     { name: "D", aliases: [] },
-    { name: "D?", aliases: ["E?"] },
+    { name: "D♯", aliases: ["E♭"] },
     { name: "E", aliases: [] },
     { name: "F", aliases: [] },
-    { name: "F?", aliases: ["G?"] },
+    { name: "F♯", aliases: ["G♭"] },
     { name: "G", aliases: [] },
-    { name: "G?", aliases: ["A?"] },
+    { name: "G♯", aliases: ["A♭"] },
     { name: "A", aliases: [] },
-    { name: "A?", aliases: ["B?"] },
+    { name: "A♯", aliases: ["B♭"] },
     { name: "B", aliases: [] }
 ];
 
@@ -1039,6 +1039,9 @@ function renderChordDiagram(chordData, targetDivId) {
     // Initialize the SVGuitar chart
     const chart = new svguitar.SVGuitarChord(targetDivId);
 
+    // Determine number of strings from chord data
+    const numStrings = chordData.frets ? chordData.frets.length : 6;
+    
     // Configure styling with dark, visible colors
     chart.configure({
         color: '#111',           // Dark color for strings/frets
@@ -1050,14 +1053,51 @@ function renderChordDiagram(chordData, targetDivId) {
         fingerColor: '#111',     // Dark finger positions
         fingerTextColor: '#fff', // White text on dark circles
         barreChordRadius: 0.25,
-        emptyStringIndicatorSize: 0.6
+        emptyStringIndicatorSize: 0.6,
+        strings: numStrings,
+        frets: 4
     });
+
+    // Convert our chord data format to SVGuitar fingers format
+    // Our format: frets = [-1, 0, 2, 2, 1, 0] (thickest to thinnest, index 0 = thickest)
+    //             fingers = [0, 0, 2, 3, 1, 0] (finger numbers)
+    // SVGuitar format: fingers = [[string, fret, label], ...] where string 1 = leftmost
+    const svguitarFingers = [];
+    for (let i = 0; i < chordData.frets.length; i++) {
+        // SVGuitar wants left-to-right numbering: iterate in reverse order
+        // If our data is [thick...thin], SVGuitar wants us to map thick=numStrings, thin=1
+        const stringNum = numStrings - i;
+        const fret = chordData.frets[i];
+        const fingerNum = chordData.fingers[i];
+        
+        if (fret === -1) {
+            // Muted string
+            svguitarFingers.push([stringNum, 'x']);
+        } else if (fret === 0) {
+            // Open string
+            svguitarFingers.push([stringNum, 0]);
+        } else {
+            // Fretted note with finger label
+            const label = fingerNum > 0 ? fingerNum.toString() : '';
+            svguitarFingers.push([stringNum, fret, label]);
+        }
+    }
+
+    // Convert barres format if present
+    // Our barre data already uses correct string numbers, just rename properties
+    const svguitarBarres = (chordData.barres || []).map(barre => ({
+        fromString: barre.from,  // Already correct (6=thickest, 1=thinnest)
+        toString: barre.to,
+        fret: barre.fret
+    }));
+
+    console.log('SVGuitar fingers:', svguitarFingers);
+    console.log('SVGuitar barres:', svguitarBarres);
 
     // Configure and draw the chart
     chart.chord({
-        frets: chordData.frets,
-        fingers: chordData.fingers,
-        barres: chordData.barres || [],
+        fingers: svguitarFingers,
+        barres: svguitarBarres,
         title: chordData.title
     }).draw();
 }
@@ -1068,7 +1108,7 @@ function initializeKeyHarmonySection() {
     if (!circleOfFifths) return;
 
     // Circle of fifths keys in order
-    const keys = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F'];
+    const keys = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯', 'D♭', 'A♭', 'E♭', 'B♭', 'F'];
     
     // Position keys in a circle
     const radius = 120;
@@ -1287,11 +1327,26 @@ function initializeControls() {
 
 
 window.onload = async () => {
-    await loadChordShapes(); // Load chord data first - This function does not exist
+    await loadChordShapes(); // Load chord data first
     initializeControls(); // Setup controls and run initial generation
-    initializeKeyHarmonySection(); // Setup the interactive harmony section - This function does not exist
+    initializeKeyHarmonySection(); // Setup the interactive harmony section
     initializeAccordions(); // Initialize all accordion elements
     await loadTabCsv(); // Load tablature data
+    
+    // Add event listeners for tablature regeneration when selections change
+    const instrumentSelect = document.getElementById('instrumentFilter');
+    const rootSelect = document.getElementById('rootSelect');
+    const modeSelect = document.getElementById('modeSelect');
+    
+    if (instrumentSelect) {
+        instrumentSelect.addEventListener('change', regenerateTabForCurrentSettings);
+    }
+    if (rootSelect) {
+        rootSelect.addEventListener('change', regenerateTabForCurrentSettings);
+    }
+    if (modeSelect) {
+        modeSelect.addEventListener('change', regenerateTabForCurrentSettings);
+    }
     
     // Add play/stop button listeners
     document.getElementById("play-tab-btn")?.addEventListener("click", playManuscript);
@@ -1363,17 +1418,131 @@ function parseCsvToTabData(csvText) {
     return tabData;
 }
 
-function renderAllPhases() {
+// Regenerate tablature when instrument/root/scale selections change
+function regenerateTabForCurrentSettings() {
     if (!manuscriptTabData) return;
-    renderManuscriptPhase('complete-tab-display', 0, 512);
+    
+    const rootSelect = document.getElementById('rootSelect');
+    const instrumentSelect = document.getElementById('instrumentFilter');
+    const modeSelect = document.getElementById('modeSelect');
+    
+    if (!rootSelect || !instrumentSelect || !modeSelect) return;
+    
+    // Get current selections
+    const selectedRootIndex = parseInt(rootSelect.value);
+    const selectedInstrument = instrumentSelect.value;
+    const selectedMode = modeSelect.options[modeSelect.selectedIndex].text;
+    
+    console.log(`Regenerating tab for: ${CHROMATIC_NOTES[selectedRootIndex].name} ${selectedMode} on ${selectedInstrument}`);
+    
+    // Calculate transposition interval from C (index 0) to selected root
+    const transpositionInterval = selectedRootIndex; // Semitones to transpose
+    
+    // Transpose the tablature data and adapt to selected instrument
+    const transposedTabData = transposeTabData(manuscriptTabData, transpositionInterval, selectedInstrument);
+    
+    // Temporarily store the transposed data
+    const originalData = manuscriptTabData;
+    manuscriptTabData = transposedTabData;
+    
+    // Re-render the tablature with selected instrument
+    renderAllPhasesForInstrument(selectedInstrument);
+    
+    // Restore original data (keep base data unchanged)
+    manuscriptTabData = originalData;
 }
 
-function renderManuscriptPhase(containerId, startBeat, endBeat) {
+// Transpose tablature data by a given interval (in semitones) and adapt to selected instrument
+function transposeTabData(tabData, semitones, instrumentKey = 'guitar_6') {
+    const transposed = {};
+    
+    // Get the target instrument's tuning
+    const targetTuning = TUNINGS[instrumentKey];
+    if (!targetTuning) {
+        console.error('Unknown instrument:', instrumentKey);
+        return tabData;
+    }
+    
+    // Get the source instrument's tuning (original is guitar_6)
+    const sourceTuning = TUNINGS['guitar_6'];
+    
+    // Map source strings to target strings based on open note matching
+    // For now, we'll use a simple approach: map by relative pitch
+    targetTuning.tuning.forEach(targetString => {
+        // Create consistent string key using label + octave (matches CSV format)
+        // CSV uses: e4, B3, G3, D3, A2, E2
+        const targetStringLabel = `${targetString.label}${targetString.octave}`;
+        
+        // Find closest matching source string or generate from pattern
+        let sourceStringLabel = null;
+        
+        // Try to find exact match first based on open_note
+        for (const sourceString of sourceTuning.tuning) {
+            if (sourceString.open_note === targetString.open_note) {
+                sourceStringLabel = `${sourceString.label}${sourceString.octave}`;
+                break;
+            }
+        }
+        
+        // If no exact match, use the tablature pattern from closest source string
+        if (!sourceStringLabel) {
+            // For instruments with different string counts, map intelligently
+            // Use the middle strings of the source as reference
+            const sourceString = sourceTuning.tuning[Math.min(targetString.string - 1, sourceTuning.tuning.length - 1)];
+            sourceStringLabel = `${sourceString.label}${sourceString.octave}`;
+        }
+        
+        // Copy and transpose the tab data
+        if (tabData[sourceStringLabel]) {
+            transposed[targetStringLabel] = tabData[sourceStringLabel].map(fret => {
+                if (!fret || fret === '' || fret === '-') return fret;
+                
+                const fretNum = parseInt(fret, 10);
+                if (isNaN(fretNum)) return fret;
+                
+                // Transpose by adding semitones
+                const newFret = fretNum + semitones;
+                
+                // Keep within reasonable fret range
+                if (newFret < 0) return '-';
+                if (newFret > 24) return '-';
+                
+                return newFret.toString();
+            });
+        } else {
+            // Generate empty pattern for this string
+            transposed[targetStringLabel] = new Array(512).fill('-');
+        }
+    });
+    
+    return transposed;
+}
+
+function renderAllPhases() {
+    if (!manuscriptTabData) return;
+    renderManuscriptPhase('complete-tab-display', 0, 512, 'guitar_6');
+}
+
+function renderAllPhasesForInstrument(instrumentKey) {
+    if (!manuscriptTabData) return;
+    renderManuscriptPhase('complete-tab-display', 0, 512, instrumentKey);
+}
+
+function renderManuscriptPhase(containerId, startBeat, endBeat, instrumentKey = 'guitar_6') {
     if (!manuscriptTabData) return;
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    const strings = ['e4', 'B3', 'G3', 'D3', 'A2', 'E2'];
+    // Get string configuration from the selected instrument
+    const tuning = TUNINGS[instrumentKey];
+    if (!tuning) {
+        console.error('Unknown instrument:', instrumentKey);
+        return;
+    }
+    
+    // Extract string labels from tuning (in display order: thinnest to thickest for standard view)
+    // Use label + octave format to match CSV data keys (e4, B3, G3, D3, A2, E2)
+    const strings = tuning.tuning.map(s => `${s.label}${s.octave}`);
     const beatsPerMeasure = 4;
     const measuresPerBar = 4;
     const beatsPerBar = beatsPerMeasure * measuresPerBar;
@@ -1402,10 +1571,16 @@ function renderManuscriptPhase(containerId, startBeat, endBeat) {
             html += '</div><div class="tab-staff">';
         }
         
-        // Create a vertical column for this beat showing all 6 strings
+        // Create a vertical column for this beat showing all strings
         html += '<div class="tab-beat-column">';
         strings.forEach(stringName => {
             const fret = manuscriptTabData[stringName]?.[beat];
+            
+            // Defensive check: warn if string data is missing
+            if (!manuscriptTabData[stringName] && beat === startBeat) {
+                console.warn(`Missing tablature data for string: ${stringName}`);
+            }
+            
             const displayFret = fret !== undefined && fret !== '' ? fret : '-';
             html += `<div class="tab-fret-cell">${displayFret}</div>`;
         });
