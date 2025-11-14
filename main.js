@@ -1025,7 +1025,8 @@ async function loadChordShapes() {
     }
 }
 
-// Render a text-based chord diagram (ASCII style)
+// Render a text-based chord diagram in LANDSCAPE orientation (ASCII style)
+// Strings run horizontally (like looking at guitar from above)
 function renderTextChordDiagram(chordData, numStrings = 6) {
     const frets = chordData.frets || [];
     const fingers = chordData.fingers || [];
@@ -1036,9 +1037,10 @@ function renderTextChordDiagram(chordData, numStrings = 6) {
     const startFret = maxFret > 4 ? Math.max(1, maxFret - 3) : 0;
     const displayFrets = maxFret > 4 ? 4 : 5; // Show 4-5 frets
     
-    // String names (default to 6-string guitar)
-    const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
-    const displayNames = stringNames.slice(-numStrings);
+    // String names (E A D G B e from bottom to top when looking at guitar)
+    // In our display: high e at top, low E at bottom
+    const stringNames = ['e', 'B', 'G', 'D', 'A', 'E'];
+    const displayNames = stringNames.slice(0, numStrings);
     
     let diagram = '';
     
@@ -1047,59 +1049,68 @@ function renderTextChordDiagram(chordData, numStrings = 6) {
     
     // Fret marker (if not open position)
     if (startFret > 0) {
-        diagram += `<div class="chord-fret-marker">[${startFret}]</div>\n`;
+        diagram += `<div class="chord-fret-marker">Position: ${startFret}fr</div>\n`;
     }
     
-    // String indicators (x = muted, o = open, or empty)
-    diagram += '<div class="chord-string-indicators">';
-    for (let i = 0; i < numStrings; i++) {
-        const fret = frets[i];
+    // Build the landscape fretboard
+    diagram += '<div class="chord-fretboard-landscape">\n';
+    
+    // For each string (high e to low E, top to bottom)
+    for (let stringIdx = numStrings - 1; stringIdx >= 0; stringIdx--) {
+        diagram += '<div class="chord-string-row">\n';
+        
+        // String name and x/o indicator on left
+        const fret = frets[stringIdx];
+        let indicator = '';
         if (fret === -1) {
-            diagram += 'x ';
+            indicator = 'x';
         } else if (fret === 0 && startFret === 0) {
-            diagram += 'o ';
+            indicator = 'o';
         } else {
-            diagram += '  ';
+            indicator = ' ';
         }
+        
+        diagram += `<div class="chord-string-label">${stringNames[numStrings - 1 - stringIdx]} ${indicator}</div>`;
+        
+        // Draw nut or edge
+        if (startFret === 0) {
+            diagram += '<div class="chord-nut">┃</div>'; // Thick nut line
+        } else {
+            diagram += '<div class="chord-edge">│</div>'; // Thin edge
+        }
+        
+        // Draw each fret position
+        for (let fretNum = startFret; fretNum < startFret + displayFrets; fretNum++) {
+            const fingerFret = frets[stringIdx];
+            const fingerNum = fingers[stringIdx];
+            
+            // Check if finger is on this fret
+            if (fingerFret === fretNum + 1) {
+                const label = fingerNum > 0 ? fingerNum.toString() : '●';
+                diagram += `<div class="chord-fret-cell finger">${label}</div>`;
+            } else {
+                diagram += '<div class="chord-fret-cell">─</div>';
+            }
+            
+            // Fret line
+            diagram += '<div class="chord-fret-line">│</div>';
+        }
+        
+        diagram += '</div>\n'; // End string row
+    }
+    
+    // Fret numbers below
+    diagram += '<div class="chord-fret-numbers">\n';
+    diagram += '<div class="chord-string-label"></div>'; // Empty space for alignment
+    diagram += '<div class="chord-edge"></div>'; // Empty space for nut/edge
+    for (let fretNum = startFret; fretNum < startFret + displayFrets; fretNum++) {
+        const displayNum = fretNum === 0 ? '' : fretNum + 1;
+        diagram += `<div class="chord-fret-number">${displayNum}</div>`;
+        diagram += '<div class="chord-fret-line"></div>'; // Empty space for fret line
     }
     diagram += '</div>\n';
     
-    // Build the fretboard grid
-    for (let fretNum = startFret; fretNum <= startFret + displayFrets; fretNum++) {
-        diagram += '<div class="chord-fret-row">';
-        
-        // Draw horizontal line (fret)
-        for (let s = 0; s < numStrings; s++) {
-            if (fretNum === startFret && startFret === 0) {
-                diagram += '━━'; // Nut (thick line at top)
-            } else {
-                diagram += '──'; // Regular fret
-            }
-            if (s < numStrings - 1) diagram += '┬';
-        }
-        
-        diagram += '</div>\n';
-        
-        // Draw finger positions between this fret and next
-        if (fretNum < startFret + displayFrets) {
-            diagram += '<div class="chord-finger-row">';
-            for (let s = 0; s < numStrings; s++) {
-                const stringFret = frets[s];
-                const fingerNum = fingers[s];
-                
-                // Check if this string has a finger on this fret
-                if (stringFret === fretNum + 1) {
-                    const label = fingerNum > 0 ? fingerNum.toString() : '●';
-                    diagram += ` ${label}`;
-                } else {
-                    diagram += ' │';
-                }
-                
-                if (s < numStrings - 1) diagram += ' ';
-            }
-            diagram += '</div>\n';
-        }
-    }
+    diagram += '</div>\n'; // End fretboard
     
     return diagram;
 }

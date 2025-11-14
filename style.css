@@ -360,7 +360,7 @@ select, button, input[type="number"] {
 }
 
 /* ====================================
-   TEXT-BASED CHORD DIAGRAM STYLES
+   LANDSCAPE CHORD DIAGRAM STYLES
    ==================================== */
 
 /* Container for multiple chord diagrams side-by-side */
@@ -380,7 +380,6 @@ select, button, input[type="number"] {
     background: #fff;
     border: 2px solid #111;
     padding: 1rem;
-    min-width: 180px;
     text-align: center;
 }
 
@@ -393,39 +392,94 @@ select, button, input[type="number"] {
     text-align: center;
 }
 
-/* Fret position marker (e.g., [5] for 5th position) */
+/* Fret position marker (e.g., Position: 5fr) */
 .chord-fret-marker {
-    font-size: 12px;
+    font-size: 11px;
     color: #666;
-    margin-bottom: 0.25rem;
-    text-align: right;
+    margin-bottom: 0.5rem;
+    text-align: center;
 }
 
-/* String indicators (x o o o o x) */
-.chord-string-indicators {
-    font-size: 14px;
-    letter-spacing: 0.5em;
-    margin-bottom: 0.25rem;
-    color: #111;
-    font-weight: bold;
+/* Landscape fretboard container */
+.chord-fretboard-landscape {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 0.5rem;
 }
 
-/* Horizontal fret line row */
-.chord-fret-row {
+/* Each string row (horizontal) */
+.chord-string-row {
+    display: flex;
+    align-items: center;
     line-height: 1;
-    letter-spacing: 0;
-    color: #111;
-    font-size: 16px;
     margin: 0;
     padding: 0;
 }
 
-/* Finger position row (between frets) */
-.chord-finger-row {
-    line-height: 1.4;
-    letter-spacing: 0.15em;
+/* String label on left (e.g., "e x" or "E o") */
+.chord-string-label {
+    font-size: 12px;
+    font-weight: bold;
     color: #111;
+    min-width: 28px;
+    text-align: left;
+    margin-right: 4px;
+}
+
+/* Nut (thick line at open position) */
+.chord-nut {
+    font-size: 18px;
+    color: #111;
+    line-height: 1;
+    font-weight: bold;
+    padding: 0 2px;
+}
+
+/* Edge (for non-open positions) */
+.chord-edge {
     font-size: 16px;
-    margin: 0;
-    padding: 0;
+    color: #111;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+/* Fret cell (space between frets) */
+.chord-fret-cell {
+    font-size: 16px;
+    color: #111;
+    line-height: 1;
+    width: 28px;
+    text-align: center;
+}
+
+/* Fret cell with finger */
+.chord-fret-cell.finger {
+    font-weight: bold;
+    color: #000;
+}
+
+/* Fret line (vertical) */
+.chord-fret-line {
+    font-size: 16px;
+    color: #111;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+/* Fret numbers row below diagram */
+.chord-fret-numbers {
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+/* Individual fret number */
+.chord-fret-number {
+    font-size: 10px;
+    color: #666;
+    line-height: 1;
+    width: 28px;
+    text-align: center;
 }
