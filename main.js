@@ -338,7 +338,7 @@ const C_MAJOR_BASS_TAB = {
         ...C_MAJOR_BASS_8_MEASURE_LOOP['E2'], ...C_MAJOR_BASS_8_MEASURE_LOOP['E2']
     ]
 };
-// --- UPDATED: Note map for new playable bass étude ---
+// --- UPDATED: Note map for new playable bass ï¿½tude ---
 const C_MAJOR_BASS_NOTE_MAP = {
     'G3': { '0': 7, '2': 9, '4': 11, '5': 12 },
     'D3': { '0': 2, '2': 4, '3': 5, '5': 7 },
@@ -441,7 +441,7 @@ const C_MAJOR_MANDOLIN_TAB = {
         ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['G3'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['G3']
     ]
 };
-// --- UPDATED: Note map for new playable mandolin étude ---
+// --- UPDATED: Note map for new playable mandolin ï¿½tude ---
 const C_MAJOR_MANDOLIN_NOTE_MAP = {
     'E5': { '0': 4, '1': 5, '3': 7, '5': 9, '7': 11 },
     'A4': { '0': 9, '2': 11, '3': 12, '5': 14 },
@@ -532,7 +532,7 @@ const C_MAJOR_BANJO_TAB = {
     'G3': [...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3']],
     'D3': [...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3']]
 };
-// --- UPDATED: Note map for new playable banjo étude ---
+// --- UPDATED: Note map for new playable banjo ï¿½tude ---
 const C_MAJOR_BANJO_NOTE_MAP = {
     'G4': { '0': 7 }, // Drone string
     'D4': { '0': 2, '1': 3, '3': 5, '5': 7 },
@@ -1356,27 +1356,27 @@ function renderManuscriptPhase(containerId, startBeat, endBeat) {
     const measuresPerBar = 4;
     const beatsPerBar = beatsPerMeasure * measuresPerBar;
     
-    let html = '<div class="tab-staff font-mono text-sm">';
+    let html = '<div class="tab-staff">';
     
     strings.forEach(stringName => {
-        html += `<div class="tab-staff-line flex">`;
-        html += `<span class="text-xs text-gray-600 w-8">${stringName}</span>`;
-        html += `<div class="tab-string-content flex flex-wrap">`;
+        html += `<div class="tab-staff-line">`;
+        html += `<span>${stringName}</span>`;
+        html += `<div class="tab-string-content">`;
         
         for (let beat = startBeat; beat < endBeat && beat < (manuscriptTabData[stringName]?.length || 0); beat++) {
             const fret = manuscriptTabData[stringName][beat];
             const displayFret = fret || '-';
             
             if (beat > startBeat && (beat - startBeat) % beatsPerMeasure === 0) {
-                html += '<span class="tab-separator px-1">|</span>';
+                html += '<span class="tab-separator"></span>';
             }
             
-            html += `<span class="tab-fret-cell w-6 text-center">${displayFret}</span>`;
+            html += `<span class="tab-fret-cell">${displayFret}</span>`;
             
             if (beat > startBeat && (beat - startBeat + 1) % beatsPerBar === 0 && beat < endBeat - 1) {
-                html += '</div></div><div class="tab-staff-line flex">';
-                html += `<span class="text-xs text-gray-600 w-8">${stringName}</span>`;
-                html += `<div class="tab-string-content flex flex-wrap">`;
+                html += '</div></div><div class="tab-staff-line">';
+                html += `<span>${stringName}</span>`;
+                html += `<div class="tab-string-content">`;
             }
         }
         
