@@ -12,8 +12,18 @@ This is an interactive web application that helps musicians:
 
 **Current State**: Fully functional frontend application built with Vite and vanilla JavaScript. The app uses external CDN libraries for music theory (Tonal.js), audio synthesis (Tone.js), and chord diagrams (SVGuitar).
 
-## Recent Changes (November 13, 2025)
+## Recent Changes
 
+### November 14, 2025
+- **Manuscript Method Section Redesign**: Completely refactored tab section to match original minimalist design
+- Implemented clean monochrome styling with precise monospaced typography (Courier New stack)
+- Removed all decorative elements (gradients, shadows, rounded corners, vivid colors)
+- Applied 18px horizontal grid system with 1px/2px staff line weights
+- Synchronized Circle of Fifths with Root Note dropdown via setActiveKey() function
+- Fixed chord diagram rendering using SVGuitar library
+- Moved static assets (CSV, chord_shapes.json) to public/ directory for production builds
+
+### November 13, 2025
 - Imported from GitHub and configured for Replit environment
 - Created Vite configuration for development server on port 5000
 - Added npm scripts for dev, build, and preview
