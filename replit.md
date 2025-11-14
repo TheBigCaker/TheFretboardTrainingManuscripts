@@ -21,10 +21,12 @@ This is an interactive web application that helps musicians:
   - Added string labels column (e4, B3, G3, D3, A2, E2) on left side
   - Measure separators every 4 beats, bar breaks every 16 beats
   - Uses vertical flex columns (20px×16px cells, monospaced Courier font)
+  - **Unified Display**: Combined three separate phases into ONE continuous training tablature (all 512 beats)
 - **CRITICAL FIX: Chord Diagrams** - Fixed SVGuitar library integration
   - Updated CDN URL to correct version: svguitar@2.4.1/dist/svguitar.umd.js
-  - Fixed JavaScript usage from svguitar.SVGuitarChord to SVGuitarChord constructor
-  - Chord diagrams now render properly when diatonic chord buttons are clicked
+  - Fixed JavaScript constructor: `new svguitar.SVGuitarChord()` instead of `new SVGuitarChord()`
+  - Added dark color configuration (#111) to ensure diagrams are visible on white backgrounds
+  - Chord diagrams now render properly with visible colors when diatonic chord buttons are clicked
 - **Manuscript Method Section Redesign**: Refactored tab section to match original minimalist design
   - Implemented clean monochrome styling with precise monospaced typography (Courier New stack)
   - Removed all decorative elements (gradients, shadows, rounded corners, vivid colors)

@@ -1039,6 +1039,20 @@ function renderChordDiagram(chordData, targetDivId) {
     // Initialize the SVGuitar chart
     const chart = new svguitar.SVGuitarChord(targetDivId);
 
+    // Configure styling with dark, visible colors
+    chart.configure({
+        color: '#111',           // Dark color for strings/frets
+        strokeColor: '#111',     // Dark stroke
+        backgroundColor: 'transparent',
+        fretColor: '#666',       // Gray for fret markers
+        stringColor: '#333',     // Dark gray for strings
+        titleColor: '#111',      // Dark title
+        fingerColor: '#111',     // Dark finger positions
+        fingerTextColor: '#fff', // White text on dark circles
+        barreChordRadius: 0.25,
+        emptyStringIndicatorSize: 0.6
+    });
+
     // Configure and draw the chart
     chart.chord({
         frets: chordData.frets,
