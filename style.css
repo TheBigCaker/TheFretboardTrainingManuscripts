@@ -297,12 +297,13 @@ select, button, input[type="number"] {
 }
 
 .tab-string-label {
-    width: 24px;
-    height: 16px;
+    width: 36px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    font-size: 12px;
+    font-size: 16px;
+    font-weight: bold;
     font-family: "Courier Prime", "Courier New", Consolas, Monaco, monospace;
     color: #111;
 }
@@ -328,12 +329,13 @@ select, button, input[type="number"] {
 
 /* Fret cells stack vertically */
 .tab-fret-cell {
-    width: 20px;
-    height: 16px;
+    width: 30px;
+    height: 24px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 13px;
+    font-size: 18px;
+    font-weight: bold;
     letter-spacing: 0;
     border-bottom: 1px solid #111;
 }
