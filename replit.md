@@ -10,9 +10,32 @@ This is an interactive web application that helps musicians:
 - Practice with generated tablature sequences
 - Understand music theory fundamentals
 
-**Current State**: Fully functional frontend application built with Vite and vanilla JavaScript. The app uses external CDN libraries for music theory (Tonal.js), audio synthesis (Tone.js), and chord diagrams (SVGuitar).
+**Current State**: Fully functional frontend application built with Vite and vanilla JavaScript. The app uses external CDN libraries for music theory (Tonal.js) and audio synthesis (Tone.js). Chord diagrams now use custom text-based ASCII rendering for better reliability and customization.
 
 ## Recent Changes
+
+### November 14, 2025 (Third Session)
+- **MAJOR REFACTOR: Text-Based Chord Diagrams** - Replaced SVGuitar library with custom ASCII/text-based chord rendering
+  - Removed SVGuitar CDN dependency from index.html completely
+  - Created renderTextChordDiagram() function using Unicode box-drawing characters (━, ─, ┬, │)
+  - Chord diagrams now display in Courier New monospace font matching tablature aesthetic
+  - Shows string indicators (x = muted, o = open) above diagram
+  - Displays fret position marker for barre chords (e.g., [5] for 5th position)
+  - Renders finger numbers (1-4) or dots (●) on fretboard grid
+- **FEATURE: Multiple Chord Positions** - Display all voicings for each chord side-by-side
+  - Modified displayChord() to render ALL voicings from chord_shapes.json (Open, Barre shapes, etc.)
+  - Diagrams arranged horizontally with 2rem gap between each position
+  - Each position shows its own title (e.g., "C Major (Open)", "C Major (A-Shape Barre)")
+- **FEATURE: Fallback Chord Generation** - Auto-generate basic chord shapes for missing chords
+  - Implemented generateFallbackChord() using Tonal.js chord parsing
+  - Analyzes chord notes and finds nearest positions on each string (within first 5 frets)
+  - Generates simple fingering for chords not in database (diminished chords, complex voicings)
+  - Labeled as "(Auto-Generated)" to distinguish from database chords
+- **CSS Styling** - Added comprehensive styles for text-based chord diagrams
+  - .chord-diagrams-container: Flexbox layout for multiple diagrams
+  - .chord-diagram-item: Individual diagram box with 2px border, white background
+  - .chord-fret-row and .chord-finger-row: Grid rendering for fretboard display
+  - Consistent with tablature monospace aesthetic (Courier New, #111 black text)
 
 ### November 14, 2025 (Second Session)
 - **CRITICAL FIX: Sharp/Flat Symbol Display** - Replaced placeholder '?' characters with proper Unicode symbols
@@ -75,7 +98,7 @@ This is an interactive web application that helps musicians:
 - **Styling**: Tailwind CSS (CDN), custom CSS
 - **Music Theory**: Tonal.js (CDN)
 - **Audio**: Tone.js (CDN)
-- **Chord Diagrams**: SVGuitar (CDN)
+- **Chord Diagrams**: Custom text-based ASCII rendering
 - **Language**: JavaScript (ES Modules)
 
 ### File Structure
