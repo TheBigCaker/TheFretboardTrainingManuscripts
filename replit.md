@@ -15,12 +15,21 @@ This is an interactive web application that helps musicians:
 ## Recent Changes
 
 ### November 14, 2025
-- **Manuscript Method Section Redesign**: Completely refactored tab section to match original minimalist design
-- Implemented clean monochrome styling with precise monospaced typography (Courier New stack)
-- Removed all decorative elements (gradients, shadows, rounded corners, vivid colors)
-- Applied 18px horizontal grid system with 1px/2px staff line weights
-- Synchronized Circle of Fifths with Root Note dropdown via setActiveKey() function
-- Fixed chord diagram rendering using SVGuitar library
+- **CRITICAL FIX: Tablature Rendering** - Completely rewrote rendering logic to display proper guitar tablature
+  - Changed from string-first iteration (incorrect) to beat-first iteration (correct)
+  - Now displays all 6 strings stacked vertically at each beat (standard guitar tab format)
+  - Added string labels column (e4, B3, G3, D3, A2, E2) on left side
+  - Measure separators every 4 beats, bar breaks every 16 beats
+  - Uses vertical flex columns (20px×16px cells, monospaced Courier font)
+- **CRITICAL FIX: Chord Diagrams** - Fixed SVGuitar library integration
+  - Updated CDN URL to correct version: svguitar@2.4.1/dist/svguitar.umd.js
+  - Fixed JavaScript usage from svguitar.SVGuitarChord to SVGuitarChord constructor
+  - Chord diagrams now render properly when diatonic chord buttons are clicked
+- **Manuscript Method Section Redesign**: Refactored tab section to match original minimalist design
+  - Implemented clean monochrome styling with precise monospaced typography (Courier New stack)
+  - Removed all decorative elements (gradients, shadows, rounded corners, vivid colors)
+  - Applied precise grid system with 1px/2px staff line weights
+  - Synchronized Circle of Fifths with Root Note dropdown via setActiveKey() function
 - Moved static assets (CSV, chord_shapes.json) to public/ directory for production builds
 
 ### November 13, 2025
