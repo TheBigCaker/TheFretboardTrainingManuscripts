@@ -1037,7 +1037,7 @@ function renderChordDiagram(chordData, targetDivId) {
     targetElement.innerHTML = "";
 
     // Initialize the SVGuitar chart
-    const chart = new SVGuitarChord(targetDivId);
+    const chart = new svguitar.SVGuitarChord(targetDivId);
 
     // Configure and draw the chart
     chart.chord({
@@ -1341,9 +1341,7 @@ function parseCsvToTabData(csvText) {
 
 function renderAllPhases() {
     if (!manuscriptTabData) return;
-    renderManuscriptPhase('phase1-display', 0, 192);
-    renderManuscriptPhase('phase2-display', 192, 208);
-    renderManuscriptPhase('phase3-display', 208, 512);
+    renderManuscriptPhase('complete-tab-display', 0, 512);
 }
 
 function renderManuscriptPhase(containerId, startBeat, endBeat) {
