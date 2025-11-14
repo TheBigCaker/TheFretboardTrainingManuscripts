@@ -1545,18 +1545,15 @@ function initializeControls() {
         const gui = renderGui(fretboardData, instrumentKey, handedness, showNotes);
         outputDiv.appendChild(gui);
 
-        // Always populate the dedicated "Strings as Rows" section
+        // Always populate the dedicated "Strings as Rows" section below tablature
         const stringsRowsDisplay = document.getElementById('strings-rows-display');
         if (stringsRowsDisplay) {
             const table1 = renderTable1(fretboardData, rootSelect.options[rootSelect.selectedIndex].text, modeSelect.options[modeSelect.selectedIndex].text, showNotes);
             stringsRowsDisplay.innerHTML = table1;
         }
 
-        if (orientation === 'both' || orientation === '1') {
-            const table1 = renderTable1(fretboardData, rootSelect.options[rootSelect.selectedIndex].text, modeSelect.options[modeSelect.selectedIndex].text, showNotes);
-            outputDiv.innerHTML += table1;
-        }
-        if (orientation === 'both' || orientation === '2') {
+        // Only render Frets as Rows if selected (Strings as Rows is always in dedicated section)
+        if (orientation === '2') {
             const table2 = renderTable2(fretboardData, rootSelect.options[rootSelect.selectedIndex].text, modeSelect.options[modeSelect.selectedIndex].text, handedness, showNotes);
             outputDiv.innerHTML += table2;
         }
