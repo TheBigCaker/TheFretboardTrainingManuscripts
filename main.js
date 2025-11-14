@@ -1115,22 +1115,140 @@ function renderTextChordDiagram(chordData, numStrings = 6) {
     return diagram;
 }
 
-// Generate a fallback chord when not found in database
-function generateFallbackChord(chordName, numStrings = 6) {
+// CAGED chord shape templates (relative to root position)
+// Each template is [string6, string5, string4, string3, string2, string1]
+// -1 = muted, 0 = open (when at position 0), positive = fret offset from root position
+const CAGED_TEMPLATES = {
+    'Major': {
+        'E-Shape': {
+            pattern: [0, 2, 2, 1, 0, 0], // E Major shape (movable)
+            fingers: [0, 3, 4, 2, 0, 0],
+            baseFret: 0,
+            name: 'E-Shape (LOW)'
+        },
+        'A-Shape': {
+            pattern: [-1, 0, 2, 2, 2, 0], // A Major shape (movable)
+            fingers: [0, 0, 3, 2, 1, 0],
+            baseFret: 0,
+            name: 'A-Shape (MID)'
+        },
+        'D-Shape': {
+            pattern: [-1, -1, 0, 2, 3, 2], // D Major shape (movable)
+            fingers: [0, 0, 0, 1, 3, 2],
+            baseFret: 0,
+            name: 'D-Shape (MID-HIGH)'
+        },
+        'C-Shape': {
+            pattern: [-1, 3, 2, 0, 1, 0], // C Major shape (movable)
+            fingers: [0, 4, 3, 0, 1, 0],
+            baseFret: 0,
+            name: 'C-Shape (HIGH)'
+        }
+    },
+    'minor': {
+        'Em-Shape': {
+            pattern: [0, 2, 2, 0, 0, 0], // E minor shape (movable)
+            fingers: [0, 2, 3, 0, 0, 0],
+            baseFret: 0,
+            name: 'Em-Shape (LOW)'
+        },
+        'Am-Shape': {
+            pattern: [-1, 0, 2, 2, 1, 0], // A minor shape (movable)
+            fingers: [0, 0, 3, 2, 1, 0],
+            baseFret: 0,
+            name: 'Am-Shape (MID)'
+        },
+        'Dm-Shape': {
+            pattern: [-1, -1, 0, 2, 3, 1], // D minor shape (movable)
+            fingers: [0, 0, 0, 2, 4, 1],
+            baseFret: 0,
+            name: 'Dm-Shape (MID-HIGH)'
+        }
+    }
+};
+
+// Generate multiple chord positions using CAGED system
+function generateCAGEDChords(chordName, numStrings = 6) {
     try {
-        // Parse the chord using Tonal.js
+        const chord = Tonal.Chord.get(chordName);
+        if (!chord.notes || chord.notes.length === 0) {
+            return [];
+        }
+        
+        const root = chord.tonic;
+        const chordType = chord.quality || chord.aliases[0] || '';
+        
+        // Determine if it's major or minor
+        let templates = null;
+        if (chordType === '' || chordType === 'Major' || chordType === 'major') {
+            templates = CAGED_TEMPLATES['Major'];
+        } else if (chordType.includes('minor') || chordType === 'm') {
+            templates = CAGED_TEMPLATES['minor'];
+        }
+        
+        if (!templates) {
+            return [generateSimpleFallback(chordName, numStrings)];
+        }
+        
+        // Find what fret the root note appears on different strings
+        const tuning = ['E', 'A', 'D', 'G', 'B', 'E']; // Standard tuning note names
+        const chromatic = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
+        
+        // Normalize root note (handle enharmonics)
+        const normalizedRoot = Tonal.Note.pitchClass(root);
+        
+        const voicings = [];
+        
+        // Generate positions for each CAGED shape
+        Object.entries(templates).forEach(([shapeName, template]) => {
+            // Find where to position this shape based on root note
+            // E-Shape: root on 6th string (E string)
+            // A-Shape: root on 5th string (A string)
+            // D-Shape: root on 4th string (D string)
+            let rootString = 6;
+            if (shapeName.includes('A-')) rootString = 5;
+            if (shapeName.includes('D-') || shapeName.includes('C-')) rootString = 4;
+            
+            const openStringNote = tuning[6 - rootString];
+            const semitoneOffset = Tonal.Distance.semitones(openStringNote, normalizedRoot);
+            
+            if (semitoneOffset === null || semitoneOffset < 0) return;
+            
+            // Create chord at this position
+            const frets = template.pattern.map((offset, idx) => {
+                if (offset === -1) return -1; // Muted
+                return semitoneOffset + offset;
+            });
+            
+            // Skip if any fret is too high (>15)
+            if (frets.some(f => f > 15)) return;
+            
+            voicings.push({
+                name: shapeName,
+                frets: frets,
+                fingers: template.fingers,
+                barres: [],
+                title: `${chordName} (${template.name})` 
+            });
+        });
+        
+        return voicings.length > 0 ? voicings : [generateSimpleFallback(chordName, numStrings)];
+        
+    } catch (error) {
+        console.error('Error generating CAGED chords:', error);
+        return [generateSimpleFallback(chordName, numStrings)];
+    }
+}
+
+// Simple fallback for chords that don't fit CAGED patterns
+function generateSimpleFallback(chordName, numStrings = 6) {
+    try {
         const chord = Tonal.Chord.get(chordName);
         if (!chord.notes || chord.notes.length === 0) {
             return null;
         }
         
-        // Get the root note
-        const root = chord.tonic;
         const chordNotes = chord.notes;
-        
-        console.log(`Generating fallback for ${chordName}:`, chordNotes);
-        
-        // Standard tuning for 6-string guitar
         const tuning = ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'];
         const stringTuning = tuning.slice(-numStrings);
         
@@ -1140,15 +1258,12 @@ function generateFallbackChord(chordName, numStrings = 6) {
         // For each string, find the nearest chord tone within first 5 frets
         for (let s = 0; s < numStrings; s++) {
             const openNote = stringTuning[s];
-            const openNoteName = openNote.slice(0, -1); // Remove octave
-            let foundFret = -1; // Mute by default
+            let foundFret = -1;
             
-            // Check frets 0-4 for a chord tone
             for (let f = 0; f <= 4; f++) {
                 const fretNote = Tonal.Note.transpose(openNote, Tonal.Interval.fromSemitones(f));
                 const fretNoteName = Tonal.Note.pitchClass(fretNote);
                 
-                // Check if this note is in the chord
                 if (chordNotes.includes(fretNoteName)) {
                     foundFret = f;
                     break;
@@ -1156,7 +1271,7 @@ function generateFallbackChord(chordName, numStrings = 6) {
             }
             
             frets.push(foundFret);
-            fingers.push(foundFret > 0 ? foundFret : 0); // Simple fingering
+            fingers.push(foundFret > 0 ? foundFret : 0);
         }
         
         return {
@@ -1258,20 +1373,37 @@ function displayChord(chordName, buttonElement) {
     
     const container = document.getElementById("chord-display-container");
     
-    // Look up chord shapes
-    const shapes = chordShapesData[instrumentName];
-    console.log('Shapes for instrument:', shapes);
-    
     let chordVoicings = [];
     
+    // First, try to get database shapes
+    const shapes = chordShapesData[instrumentName];
     if (shapes && shapes[chordName]) {
-        // Use all voicings from the database
-        chordVoicings = shapes[chordName];
-        console.log(`Found ${chordVoicings.length} voicing(s) for ${chordName}`);
-    } else {
-        // Generate fallback chord
-        console.log(`Chord ${chordName} not found, generating fallback...`);
-        const fallback = generateFallbackChord(chordName, 6);
+        chordVoicings = [...shapes[chordName]];
+        console.log(`Found ${chordVoicings.length} database voicing(s) for ${chordName}`);
+    }
+    
+    // Then add CAGED auto-generated positions
+    console.log(`Generating CAGED positions for ${chordName}...`);
+    const cagedVoicings = generateCAGEDChords(chordName, 6);
+    
+    if (cagedVoicings && cagedVoicings.length > 0) {
+        // Merge: Add CAGED voicings that aren't duplicates of database chords
+        cagedVoicings.forEach(caged => {
+            // Simple duplicate check based on fret positions
+            const isDuplicate = chordVoicings.some(existing => 
+                JSON.stringify(existing.frets) === JSON.stringify(caged.frets)
+            );
+            if (!isDuplicate) {
+                chordVoicings.push(caged);
+            }
+        });
+        console.log(`Added ${cagedVoicings.length} CAGED positions`);
+    }
+    
+    // If still no voicings, try simple fallback
+    if (chordVoicings.length === 0) {
+        console.log(`No voicings found, trying simple fallback for ${chordName}...`);
+        const fallback = generateSimpleFallback(chordName, 6);
         if (fallback) {
             chordVoicings = [fallback];
         } else {
@@ -1279,6 +1411,8 @@ function displayChord(chordName, buttonElement) {
             return;
         }
     }
+    
+    console.log(`Total voicings to display: ${chordVoicings.length}`);
     
     // Render all voicings side-by-side
     container.innerHTML = '<div class="chord-diagrams-container"></div>';
