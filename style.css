@@ -297,12 +297,12 @@ select, button, input[type="number"] {
 }
 
 .tab-string-label {
-    width: 40px;
-    height: 26px;
+    width: 44px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    font-size: 17px;
+    font-size: 19px;
     font-weight: bold;
     font-family: "Courier Prime", "Courier New", Consolas, Monaco, monospace;
     color: #111;
@@ -329,12 +329,12 @@ select, button, input[type="number"] {
 
 /* Fret cells stack vertically */
 .tab-fret-cell {
-    width: 42px;
-    height: 26px;
+    width: 48px;
+    height: 28px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
     letter-spacing: 0;
     border-bottom: 1px solid #111;
