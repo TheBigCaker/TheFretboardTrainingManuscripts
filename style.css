@@ -297,12 +297,12 @@ select, button, input[type="number"] {
 }
 
 .tab-string-label {
-    width: 36px;
-    height: 24px;
+    width: 40px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: bold;
     font-family: "Courier Prime", "Courier New", Consolas, Monaco, monospace;
     color: #111;
@@ -329,12 +329,12 @@ select, button, input[type="number"] {
 
 /* Fret cells stack vertically */
 .tab-fret-cell {
-    width: 30px;
-    height: 24px;
+    width: 42px;
+    height: 26px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     letter-spacing: 0;
     border-bottom: 1px solid #111;
@@ -347,10 +347,10 @@ select, button, input[type="number"] {
 
 /* Measure Separators (every 4 beats) */
 .tab-measure-separator {
-    width: 1px;
+    width: 2px;
     background: #111;
     align-self: stretch;
-    margin: 0 8px;
+    margin: 0 12px;
 }
 
 /* Bar Breaks (every 16 beats) */
