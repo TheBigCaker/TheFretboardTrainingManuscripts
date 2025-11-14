@@ -1130,6 +1130,8 @@ function selectKey(key) {
 
 // Display a chord diagram
 function displayChord(chordName, buttonElement) {
+    console.log('displayChord called with:', chordName);
+    
     // Remove active class from all chord buttons
     document.querySelectorAll('.diatonic-chord-btn').forEach(btn => btn.classList.remove('active'));
     buttonElement.classList.add('active');
@@ -1139,18 +1141,26 @@ function displayChord(chordName, buttonElement) {
     const instrumentKey = instrumentSelect ? instrumentSelect.value : 'guitar_6';
     const instrumentName = '6-String Guitar (EADGBe)'; // Default
     
+    console.log('Instrument:', instrumentName);
+    console.log('Available shapes:', chordShapesData);
+    
     // Look up chord shape
     const shapes = chordShapesData[instrumentName];
+    console.log('Shapes for instrument:', shapes);
+    
     if (!shapes || !shapes[chordName]) {
         const container = document.getElementById('chord-display-container');
         if (container) {
             container.innerHTML = `<p class="text-gray-500 italic">Chord shape not available for ${chordName}</p>`;
         }
+        console.log('Chord not found:', chordName);
         return;
     }
     
     // Use first voicing
     const chordData = shapes[chordName][0];
+    console.log('Chord data:', chordData);
+    
     const container = document.getElementById("chord-display-container");
     container.innerHTML = '<div id="chord-diagram"></div>';
     renderChordDiagram(chordData, "#chord-diagram");
