@@ -1210,9 +1210,11 @@ function initializeKeyHarmonySection() {
 
 // Handle key selection
 function selectKey(key) {
+    // Normalize key for Tonal.js (convert Unicode ♯ to ASCII #)
+    const normalizedKey = key.replace('♯', '#').replace('♭', 'b');
     
     // Get diatonic chords using Tonal.js
-    const scale = Tonal.Scale.get(`${key} major`);
+    const scale = Tonal.Scale.get(`${normalizedKey} major`);
     const chordNames = scale.notes.map((note, index) => {
         // Build triads: I, ii, iii, IV, V, vi, vii°
         const quality = ['', 'm', 'm', '', '', 'm', 'dim'][index];

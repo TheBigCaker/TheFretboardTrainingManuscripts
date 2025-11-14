@@ -92,6 +92,7 @@ export const SCALES = {
         { name: 'Byzantine', intervals: [0, 1, 4, 5, 7, 8, 11] },
         { name: 'Romanian Minor', intervals: [0, 2, 3, 6, 7, 9, 10] },
         { name: 'Hungarian Gypsy', intervals: [0, 2, 3, 6, 7, 8, 11] },
+        { name: 'Hungarian Major', intervals: [0, 3, 4, 6, 7, 9, 10] },
         { name: 'Whole Tone', intervals: [0, 2, 4, 6, 8, 10] },
         { name: 'Diminished (W-H)', intervals: [0, 2, 3, 5, 6, 8, 9, 11] },
         { name: 'Diminished (H-W)', intervals: [0, 1, 3, 4, 6, 7, 9, 10] },
@@ -101,7 +102,29 @@ export const SCALES = {
         { name: 'Persian', intervals: [0, 1, 4, 5, 6, 8, 11] },
         { name: 'Oriental', intervals: [0, 1, 4, 5, 6, 9, 10] },
         { name: 'Prometheus', intervals: [0, 2, 4, 6, 9, 10] },
-        { name: 'Hiraj?shi', intervals: [0, 2, 3, 7, 8] },
-        { name: 'Neapolitan Major', intervals: [0, 1, 3, 5, 7, 9, 11] }
+        { name: 'Hirajoshi', intervals: [0, 2, 3, 7, 8] },
+        { name: 'Neapolitan Major', intervals: [0, 1, 3, 5, 7, 9, 11] },
+        { name: 'Neapolitan Minor', intervals: [0, 1, 3, 5, 7, 8, 11] },
+        { name: 'Double Harmonic', intervals: [0, 1, 4, 5, 7, 8, 11] },
+        { name: 'Augmented', intervals: [0, 3, 4, 7, 8, 11] },
+        { name: 'Enigmatic', intervals: [0, 1, 4, 6, 8, 10, 11] },
+        { name: 'Algerian', intervals: [0, 2, 3, 6, 7, 8, 11] },
+        { name: 'Balinese', intervals: [0, 1, 3, 7, 8] },
+        { name: 'Chinese', intervals: [0, 4, 6, 7, 11] },
+        { name: 'Egyptian', intervals: [0, 2, 5, 7, 10] },
+        { name: 'Hindu', intervals: [0, 2, 4, 5, 7, 8, 10] },
+        { name: 'Japanese (In Sen)', intervals: [0, 1, 5, 7, 10] },
+        { name: 'Iwato', intervals: [0, 1, 5, 6, 10] },
+        { name: 'Kumoi', intervals: [0, 2, 3, 7, 9] },
+        { name: 'Mongolian', intervals: [0, 2, 4, 7, 9] },
+        { name: 'Pelog', intervals: [0, 1, 3, 7, 8] },
+        { name: 'Spanish (8 Tone)', intervals: [0, 1, 3, 4, 5, 6, 8, 10] }
+    ],
+    'Jazz & Bebop': [
+        { name: 'Bebop Dominant', intervals: [0, 2, 4, 5, 7, 9, 10, 11] },
+        { name: 'Bebop Major', intervals: [0, 2, 4, 5, 7, 8, 9, 11] },
+        { name: 'Bebop Minor', intervals: [0, 2, 3, 5, 7, 8, 9, 10] },
+        { name: 'Bebop Half Diminished', intervals: [0, 2, 3, 5, 6, 8, 9, 10] },
+        { name: 'Lydian Dominant', intervals: [0, 2, 4, 6, 7, 9, 10] }
     ]
 };

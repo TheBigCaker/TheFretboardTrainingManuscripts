@@ -14,6 +14,18 @@ This is an interactive web application that helps musicians:
 
 ## Recent Changes
 
+### November 14, 2025 (Fifth Session)
+- **CRITICAL FIX: Circle of Fifths Bug** - Fixed missing buttons for F#, D♭, A♭, E♭, B♭ keys
+  - Added key normalization function to convert Unicode ♯ to ASCII # for Tonal.js compatibility
+  - All 12 keys on Circle of Fifths now display diatonic chords and progressions correctly
+  - Fixed selectKey() function to handle both sharp (♯) and flat (♭) notation
+- **MAJOR EXPANSION: Scale Library** - Added 20+ new exotic and jazz scales from scales-chords.com
+  - **New Exotic Scales**: Hungarian Major, Neapolitan Minor, Double Harmonic, Augmented, Enigmatic, Algerian, Balinese, Chinese, Egyptian, Hindu, Japanese (In Sen), Iwato, Kumoi, Mongolian, Pelog, Spanish (8 Tone)
+  - **New Jazz & Bebop Category**: Bebop Dominant, Bebop Major, Bebop Minor, Bebop Half Diminished, Lydian Dominant
+  - Fixed Hirajoshi typo (was "Hiraj?shi")
+  - Total scale library now includes 50+ scales covering Western, Modal, Exotic, and Jazz styles
+  - All scales available in dropdown for fretboard visualization and tablature generation
+
 ### November 14, 2025 (Fourth Session)
 - **MAJOR REFACTOR: Landscape Chord Diagrams** - Converted chord diagrams from vertical to landscape orientation
   - Strings now run horizontally (high e at top, low E at bottom - like looking at guitar from above)
