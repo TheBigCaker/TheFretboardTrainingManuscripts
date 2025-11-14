@@ -1167,6 +1167,34 @@ const CAGED_TEMPLATES = {
     }
 };
 
+// Helper function to calculate semitone distance between two notes
+function getSemitoneDistance(fromNote, toNote) {
+    const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const enharmonicMap = {
+        'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'
+    };
+    
+    // Normalize notes (handle enharmonics)
+    const normalizeNote = (note) => {
+        const pitchClass = Tonal.Note.pitchClass(note);
+        return enharmonicMap[pitchClass] || pitchClass;
+    };
+    
+    const from = normalizeNote(fromNote);
+    const to = normalizeNote(toNote);
+    
+    const fromIndex = chromaticScale.indexOf(from);
+    const toIndex = chromaticScale.indexOf(to);
+    
+    if (fromIndex === -1 || toIndex === -1) return null;
+    
+    // Calculate semitones (positive = up, can wrap around octave)
+    let distance = toIndex - fromIndex;
+    if (distance < 0) distance += 12;
+    
+    return distance;
+}
+
 // Generate multiple chord positions using CAGED system
 function generateCAGEDChords(chordName, numStrings = 6) {
     try {
@@ -1187,15 +1215,11 @@ function generateCAGEDChords(chordName, numStrings = 6) {
         }
         
         if (!templates) {
-            return [generateSimpleFallback(chordName, numStrings)];
+            return [];
         }
         
         // Find what fret the root note appears on different strings
         const tuning = ['E', 'A', 'D', 'G', 'B', 'E']; // Standard tuning note names
-        const chromatic = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
-        
-        // Normalize root note (handle enharmonics)
-        const normalizedRoot = Tonal.Note.pitchClass(root);
         
         const voicings = [];
         
@@ -1210,7 +1234,7 @@ function generateCAGEDChords(chordName, numStrings = 6) {
             if (shapeName.includes('D-') || shapeName.includes('C-')) rootString = 4;
             
             const openStringNote = tuning[6 - rootString];
-            const semitoneOffset = Tonal.Distance.semitones(openStringNote, normalizedRoot);
+            const semitoneOffset = getSemitoneDistance(openStringNote, root);
             
             if (semitoneOffset === null || semitoneOffset < 0) return;
             
@@ -1232,11 +1256,11 @@ function generateCAGEDChords(chordName, numStrings = 6) {
             });
         });
         
-        return voicings.length > 0 ? voicings : [generateSimpleFallback(chordName, numStrings)];
+        return voicings;
         
     } catch (error) {
         console.error('Error generating CAGED chords:', error);
-        return [generateSimpleFallback(chordName, numStrings)];
+        return [];
     }
 }
 
@@ -1521,6 +1545,12 @@ function initializeControls() {
         const gui = renderGui(fretboardData, instrumentKey, handedness, showNotes);
         outputDiv.appendChild(gui);
 
+        // Always populate the dedicated "Strings as Rows" section
+        const stringsRowsDisplay = document.getElementById('strings-rows-display');
+        if (stringsRowsDisplay) {
+            const table1 = renderTable1(fretboardData, rootSelect.options[rootSelect.selectedIndex].text, modeSelect.options[modeSelect.selectedIndex].text, showNotes);
+            stringsRowsDisplay.innerHTML = table1;
+        }
 
         if (orientation === 'both' || orientation === '1') {
             const table1 = renderTable1(fretboardData, rootSelect.options[rootSelect.selectedIndex].text, modeSelect.options[modeSelect.selectedIndex].text, showNotes);
