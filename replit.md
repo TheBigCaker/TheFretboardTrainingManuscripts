@@ -1,201 +1,32 @@
 # The Fretboard Training Manuscripts
 
-A music theory and fretboard visualization tool for guitarists, bassists, and other stringed instrument players.
-
 ## Overview
+This project is an interactive web application designed to help guitarists, bassists, and other stringed instrument players visualize scales and modes, learn chord progressions, practice with generated tablature sequences, and understand music theory fundamentals. The business vision is to provide a comprehensive, intuitive, and accessible tool that enhances musical learning and practice for stringed instrument players, potentially expanding into a widely used educational platform.
 
-This is an interactive web application that helps musicians:
-- Visualize scales and modes on various stringed instruments
-- Learn chord progressions and diatonic harmony
-- Practice with generated tablature sequences
-- Understand music theory fundamentals
+## User Preferences
+I prefer a minimalist design with a focus on clear, functional elements. The visual aesthetic should be clean and monochrome, prioritizing readability and precise typography. I value direct feedback and immediate visual updates when I make selections. I also prefer to keep the `public/` directory for static assets and the core application logic in `main.js`. I want the agent to use a "practice-first" approach, meaning that practice materials should be prioritized in the layout. Do not make changes to the file `vite.config.js`.
 
-**Current State**: Fully functional frontend application built with Vite and vanilla JavaScript. The app uses external CDN libraries for music theory (Tonal.js) and audio synthesis (Tone.js). Chord diagrams now use custom text-based ASCII rendering for better reliability and customization.
+## System Architecture
+The application is a fully functional frontend built with Vite and vanilla JavaScript. It uses external CDN libraries for music theory (Tonal.js) and audio synthesis (Tone.js). Chord diagrams are rendered using a custom text-based ASCII system for enhanced reliability and customization. The UI/UX prioritizes a clean, minimalist design with precise monospaced typography, particularly for tablature and chord diagrams, using a monochrome styling.
 
-## Recent Changes
+**Technical Implementations & Feature Specifications:**
+-   **Fretboard Visualization**: Displays scale patterns interactively, supporting multiple instruments (6/7-string guitars, 4/5-string basses, mandolin, 5-string banjo).
+-   **Extensive Scale Library**: Includes over 50 scales covering Western, Modal, Exotic, and Jazz styles.
+-   **Interactive Harmony**: Features a functional Circle of Fifths, diatonic chords, and common progressions.
+-   **Tablature Training**: Generates continuous tab sequences (up to 512 beats) with dynamic updates based on instrument, root note, and scale/mode selection. Tablature displays in a standard "strings as rows" format with beat-first rendering.
+-   **CAGED Chord Auto-Generation**: Implements a system to auto-generate multiple major and minor chord voicings across low, mid, and high fretboard positions, merging with a comprehensive database of over 100 chord positions. Includes a fallback mechanism for complex chords.
+-   **Text-Based Chord Diagrams**: Custom ASCII rendering for chord diagrams, displaying string indicators (x/o), fret position markers, and finger numbers (1-4) or dots. Diagrams are landscape oriented with strings running horizontally.
+-   **Educational Content**: Integrated music theory explanations, including detailed sections on understanding chord diagrams and progressions.
+-   **Layout**: The page flow is optimized for learning: Scale Menu → GUI Fretboard → Training Tablature → Strings as Rows (dedicated view) → Interactive Key & Harmony.
 
-### November 14, 2025 (Sixth Session)
-- **MAJOR FEATURE: CAGED Chord Auto-Generation System** - Implemented smart chord position generator
-  - Created CAGED template system for major and minor chords (E-Shape, A-Shape, D-Shape, C-Shape patterns)
-  - Auto-generates multiple voicings across LOW/MID/HIGH fretboard positions for any chord
-  - Merges database chords with CAGED-generated positions for comprehensive coverage
-  - Example: A Major now shows open position + A-Shape (5th fret) + D-Shape (9th fret) + C-Shape positions
-  - Supports movable barre chord shapes transposed to correct fret positions
-  - Falls back to simple algorithm for 7th chords and other complex voicings not in CAGED system
-- **UX IMPROVEMENT: Page Section Reordering** - Reorganized layout for better workflow
-  - **New order**: Scale Menu → GUI Fretboard → Training Tablature → Interactive Key & Harmony
-  - Interactive Key & Harmony section moved to bottom for better focus on practice materials
-  - Fretboard visualization now appears directly after controls for immediate visual feedback
-  - Training tablature positioned before theory section for practice-first approach
-- **UX IMPROVEMENT: Default Orientation Changed** - Changed tablature default from "Both Tables" to "Strings as Rows"
-  - "Strings as Rows" is now the default view on page load
-  - Matches standard guitar tablature reading format (horizontal string layout)
-  - Users can still switch to "Both Tables" or "Frets as Rows" via radio buttons
+**System Design Choices:**
+-   **Modularity**: Core logic in `main.js`, instrument tunings and scale definitions in `database.js`, chord data in `chord_shapes.json`.
+-   **Performance**: Utilizes Vite for fast development and optimized production builds.
+-   **Responsiveness**: Tablature and fretboard visualizations dynamically update with user input.
+-   **Consistent Aesthetic**: Adherence to a monochrome, monospaced font aesthetic for all musical notation displays.
 
-### November 14, 2025 (Fifth Session)
-- **CRITICAL FIX: Circle of Fifths Bug** - Fixed missing buttons for F#, D♭, A♭, E♭, B♭ keys
-  - Added key normalization function to convert Unicode ♯ to ASCII # for Tonal.js compatibility
-  - All 12 keys on Circle of Fifths now display diatonic chords and progressions correctly
-  - Fixed selectKey() function to handle both sharp (♯) and flat (♭) notation
-- **MAJOR EXPANSION: Scale Library** - Added 20+ new exotic and jazz scales from scales-chords.com
-  - **New Exotic Scales**: Hungarian Major, Neapolitan Minor, Double Harmonic, Augmented, Enigmatic, Algerian, Balinese, Chinese, Egyptian, Hindu, Japanese (In Sen), Iwato, Kumoi, Mongolian, Pelog, Spanish (8 Tone)
-  - **New Jazz & Bebop Category**: Bebop Dominant, Bebop Major, Bebop Minor, Bebop Half Diminished, Lydian Dominant
-  - Fixed Hirajoshi typo (was "Hiraj?shi")
-  - Total scale library now includes 50+ scales covering Western, Modal, Exotic, and Jazz styles
-  - All scales available in dropdown for fretboard visualization and tablature generation
-
-### November 14, 2025 (Fourth Session)
-- **MAJOR REFACTOR: Landscape Chord Diagrams** - Converted chord diagrams from vertical to landscape orientation
-  - Strings now run horizontally (high e at top, low E at bottom - like looking at guitar from above)
-  - Frets run vertically (nut on left, higher frets to right)
-  - String indicators (x/o) now appear on left side next to string labels
-  - Fret numbers display below the diagram
-  - Improved visual clarity matching standard guitar tab layout
-- **ENHANCED EDUCATIONAL CONTENT** - Expanded music theory accordion panels
-  - Added comprehensive "Understanding Chord Diagrams" section explaining all diagram symbols
-  - Created new "Understanding Chord Progressions" accordion with diatonic chord functions
-  - Detailed explanation of I-IV-V, I-V-vi-IV, ii-V-I, and I-vi-IV-V progressions
-  - Added finger placement mapping (1=index, 2=middle, 3=ring, 4=pinky)
-  - Explained position markers for barre chords (e.g., "Position: 3fr" means 3rd fret)
-- **COMPREHENSIVE CHORD DATABASE EXPANSION** - Imported and curated 100+ chord positions
-  - Sourced from tombatossals/chords-db open-source repository (3,283+ chords)
-  - Added LOW/MID/HIGH position coverage for all major and minor chords (all 12 keys)
-  - Added 7th chords for common keys (C7, D7, E7, F7, G7, A7, B7)
-  - Added diminished chords (D#dim with multiple positions)
-  - Each chord now has 2-3 positions covering different neck areas
-  - Position naming: "Open (LOW)", "A-Shape (MID)", "E-Shape (HIGH)", etc.
-  - Total chord database now includes: C, Cm, C7, D, Dm, D7, E, Em, E7, F, Fm, F7, G, Gm, G7, A, Am, A7, B, Bm, B7, F#m, C#m, G#m, D#dim
-  - Supports complete fretboard coverage philosophy matching tablature training method
-- **CSS UPDATES** - Redesigned styles for landscape chord diagram layout
-  - .chord-fretboard-landscape: Flex column container for horizontal strings
-  - .chord-string-row: Individual string rows with labels and fret cells
-  - .chord-string-label: Left-aligned string names with x/o indicators
-  - .chord-nut and .chord-edge: Visual distinction for nut vs. barred positions
-  - .chord-fret-cell: 28px wide cells for finger positions
-  - .chord-fret-numbers: Row below diagram showing fret numbers
-
-### November 14, 2025 (Third Session)
-- **MAJOR REFACTOR: Text-Based Chord Diagrams** - Replaced SVGuitar library with custom ASCII/text-based chord rendering
-  - Removed SVGuitar CDN dependency from index.html completely
-  - Created renderTextChordDiagram() function using Unicode box-drawing characters (━, ─, ┬, │)
-  - Chord diagrams now display in Courier New monospace font matching tablature aesthetic
-  - Shows string indicators (x = muted, o = open) above diagram
-  - Displays fret position marker for barre chords (e.g., [5] for 5th position)
-  - Renders finger numbers (1-4) or dots (●) on fretboard grid
-- **FEATURE: Multiple Chord Positions** - Display all voicings for each chord side-by-side
-  - Modified displayChord() to render ALL voicings from chord_shapes.json (Open, Barre shapes, etc.)
-  - Diagrams arranged horizontally with 2rem gap between each position
-  - Each position shows its own title (e.g., "C Major (Open)", "C Major (A-Shape Barre)")
-- **FEATURE: Fallback Chord Generation** - Auto-generate basic chord shapes for missing chords
-  - Implemented generateFallbackChord() using Tonal.js chord parsing
-  - Analyzes chord notes and finds nearest positions on each string (within first 5 frets)
-  - Generates simple fingering for chords not in database (diminished chords, complex voicings)
-  - Labeled as "(Auto-Generated)" to distinguish from database chords
-- **CSS Styling** - Added comprehensive styles for text-based chord diagrams
-  - .chord-diagrams-container: Flexbox layout for multiple diagrams
-  - .chord-diagram-item: Individual diagram box with 2px border, white background
-  - .chord-fret-row and .chord-finger-row: Grid rendering for fretboard display
-  - Consistent with tablature monospace aesthetic (Courier New, #111 black text)
-
-### November 14, 2025 (Second Session)
-- **CRITICAL FIX: Sharp/Flat Symbol Display** - Replaced placeholder '?' characters with proper Unicode symbols
-  - Updated CHROMATIC_NOTES array to use ♯ (sharp) and ♭ (flat) instead of '?'
-  - Fixed Circle of Fifths to display F♯, D♭, A♭, E♭, B♭ with proper symbols
-  - All note names throughout UI now display correctly with musical notation
-- **CRITICAL FIX: SVGuitar Chord Diagram Rendering** - Fixed blank chord diagram boxes
-  - Converted chord data format from our frets/fingers arrays to SVGuitar's required fingers array format [[string, fret, label]]
-  - Fixed string numbering: SVGuitar uses 6=thickest to 1=thinnest
-  - Added dynamic string count detection from chord data (supports 4-7 string instruments)
-  - Added console logging for debugging chord data conversion
-  - Chord diagrams now render properly with correct fingering positions
-- **CRITICAL FIX: Dynamic Tablature Regeneration** - Made tablature responsive to dropdown changes
-  - Added event listeners to instrument, root note, and scale/mode dropdowns
-  - Implemented transposeTabData() function to transpose tablature by semitone intervals
-  - Implemented instrument-aware rendering using TUNINGS data from database.js
-  - Normalized string identifiers to use label+octave format (e4, B3, G3, etc.) matching CSV data
-  - Created renderAllPhasesForInstrument() to render tablature for any selected instrument
-  - Tablature now dynamically updates when user changes instrument (guitar/bass/mandolin/banjo), root note, or scale/mode
-  - Supports all instruments: 6/7-string guitar, 4/5-string bass, mandolin, 5-string banjo
-  - Added defensive logging to warn about missing string data during rendering
-
-### November 14, 2025 (First Session)
-- **CRITICAL FIX: Tablature Rendering** - Completely rewrote rendering logic to display proper guitar tablature
-  - Changed from string-first iteration (incorrect) to beat-first iteration (correct)
-  - Now displays all 6 strings stacked vertically at each beat (standard guitar tab format)
-  - Added string labels column (e4, B3, G3, D3, A2, E2) on left side
-  - Measure separators every 4 beats, bar breaks every 16 beats
-  - Uses vertical flex columns (20px×16px cells, monospaced Courier font)
-  - **Unified Display**: Combined three separate phases into ONE continuous training tablature (all 512 beats)
-- **CRITICAL FIX: Chord Diagrams** - Fixed SVGuitar library integration
-  - Updated CDN URL to correct version: svguitar@2.4.1/dist/svguitar.umd.js
-  - Fixed JavaScript constructor: `new svguitar.SVGuitarChord()` instead of `new SVGuitarChord()`
-  - Added dark color configuration (#111) to ensure diagrams are visible on white backgrounds
-  - Added missing chord shapes: A, E, B, Bm, F#m, C#m, G#m, D#dim to chord_shapes.json
-  - Chord diagrams now render properly with visible colors when diatonic chord buttons are clicked
-- **Tablature Text Sizing** - Increased tablature text size for better readability
-  - Font size increased from 13px to 18px bold
-  - Cell dimensions increased from 20×16px to 30×24px
-  - String labels increased from 12px to 16px bold
-  - Tablature now fills the display box more effectively
-- **Manuscript Method Section Redesign**: Refactored tab section to match original minimalist design
-  - Implemented clean monochrome styling with precise monospaced typography (Courier New stack)
-  - Removed all decorative elements (gradients, shadows, rounded corners, vivid colors)
-  - Applied precise grid system with 1px/2px staff line weights
-  - Synchronized Circle of Fifths with Root Note dropdown via setActiveKey() function
-- Moved static assets (CSV, chord_shapes.json) to public/ directory for production builds
-
-### November 13, 2025
-- Imported from GitHub and configured for Replit environment
-- Created Vite configuration for development server on port 5000
-- Added npm scripts for dev, build, and preview
-- Configured deployment settings for production (autoscale)
-- Set up development workflow with webview output
-
-## Project Architecture
-
-### Technology Stack
-- **Build Tool**: Vite 7.2.2
-- **Styling**: Tailwind CSS (CDN), custom CSS
-- **Music Theory**: Tonal.js (CDN)
-- **Audio**: Tone.js (CDN)
-- **Chord Diagrams**: Custom text-based ASCII rendering
-- **Language**: JavaScript (ES Modules)
-
-### File Structure
-- `index.html` - Main HTML template with controls and layout
-- `main.js` - Core application logic for fretboard visualization and tablature generation
-- `database.js` - Instrument tunings and scale/mode definitions
-- `style.css` - Custom styles and component styling
-- `chord_shapes.json` - Chord fingering data
-- `vite.config.js` - Vite development and build configuration
-- `package.json` - Project dependencies and scripts
-
-### Key Features
-1. **Fretboard Visualization**: Interactive fretboard display showing scale patterns
-2. **Multiple Instruments**: Support for 6/7-string guitars, 4/5-string basses, mandolin, and banjo
-3. **Scale Library**: Common scales, modes, minor scales, and exotic scales
-4. **Interactive Harmony**: Circle of fifths, diatonic chords, and common progressions
-5. **Tablature Training**: Generated tab sequences with customizable tempo and formatting
-6. **Educational Content**: Built-in music theory fundamentals with accordion panels
-
-## Development
-
-### Running Locally
-```bash
-npm install
-npm run dev
-```
-The app will run on http://0.0.0.0:5000
-
-### Building for Production
-```bash
-npm run build
-npm run preview
-```
-
-## Configuration Notes
-
-- **Port**: Development server runs on port 5000 (required for Replit webview)
-- **Host**: Configured to bind to 0.0.0.0 for external access
-- **HMR**: Hot Module Replacement configured for port 5000
-- **Deployment**: Uses autoscale deployment target with Vite preview server
+## External Dependencies
+-   **Build Tool**: Vite
+-   **Styling**: Tailwind CSS (CDN)
+-   **Music Theory**: Tonal.js (CDN)
+-   **Audio**: Tone.js (CDN)
