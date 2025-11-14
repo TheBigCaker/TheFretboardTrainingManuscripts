@@ -14,6 +14,36 @@ This is an interactive web application that helps musicians:
 
 ## Recent Changes
 
+### November 14, 2025 (Fourth Session)
+- **MAJOR REFACTOR: Landscape Chord Diagrams** - Converted chord diagrams from vertical to landscape orientation
+  - Strings now run horizontally (high e at top, low E at bottom - like looking at guitar from above)
+  - Frets run vertically (nut on left, higher frets to right)
+  - String indicators (x/o) now appear on left side next to string labels
+  - Fret numbers display below the diagram
+  - Improved visual clarity matching standard guitar tab layout
+- **ENHANCED EDUCATIONAL CONTENT** - Expanded music theory accordion panels
+  - Added comprehensive "Understanding Chord Diagrams" section explaining all diagram symbols
+  - Created new "Understanding Chord Progressions" accordion with diatonic chord functions
+  - Detailed explanation of I-IV-V, I-V-vi-IV, ii-V-I, and I-vi-IV-V progressions
+  - Added finger placement mapping (1=index, 2=middle, 3=ring, 4=pinky)
+  - Explained position markers for barre chords (e.g., "Position: 3fr" means 3rd fret)
+- **COMPREHENSIVE CHORD DATABASE EXPANSION** - Imported and curated 100+ chord positions
+  - Sourced from tombatossals/chords-db open-source repository (3,283+ chords)
+  - Added LOW/MID/HIGH position coverage for all major and minor chords (all 12 keys)
+  - Added 7th chords for common keys (C7, D7, E7, F7, G7, A7, B7)
+  - Added diminished chords (D#dim with multiple positions)
+  - Each chord now has 2-3 positions covering different neck areas
+  - Position naming: "Open (LOW)", "A-Shape (MID)", "E-Shape (HIGH)", etc.
+  - Total chord database now includes: C, Cm, C7, D, Dm, D7, E, Em, E7, F, Fm, F7, G, Gm, G7, A, Am, A7, B, Bm, B7, F#m, C#m, G#m, D#dim
+  - Supports complete fretboard coverage philosophy matching tablature training method
+- **CSS UPDATES** - Redesigned styles for landscape chord diagram layout
+  - .chord-fretboard-landscape: Flex column container for horizontal strings
+  - .chord-string-row: Individual string rows with labels and fret cells
+  - .chord-string-label: Left-aligned string names with x/o indicators
+  - .chord-nut and .chord-edge: Visual distinction for nut vs. barred positions
+  - .chord-fret-cell: 28px wide cells for finger positions
+  - .chord-fret-numbers: Row below diagram showing fret numbers
+
 ### November 14, 2025 (Third Session)
 - **MAJOR REFACTOR: Text-Based Chord Diagrams** - Replaced SVGuitar library with custom ASCII/text-based chord rendering
   - Removed SVGuitar CDN dependency from index.html completely
