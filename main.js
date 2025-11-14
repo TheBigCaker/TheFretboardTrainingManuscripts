@@ -1037,7 +1037,7 @@ function renderChordDiagram(chordData, targetDivId) {
     targetElement.innerHTML = "";
 
     // Initialize the SVGuitar chart
-    const chart = new SVGuitarChord(targetDivId);
+    const chart = new svguitar.SVGuitarChord(targetDivId);
 
     // Configure and draw the chart
     chart.chord({
@@ -1073,7 +1073,7 @@ function initializeKeyHarmonySection() {
         keyButton.style.top = `${y}px`;
         keyButton.style.transform = 'translate(-50%, -50%)';
         
-        keyButton.addEventListener('click', () => selectKey(key, keyButton));
+        keyButton.addEventListener('click', () => setActiveKey(key));
         circleOfFifths.appendChild(keyButton);
     });
     
@@ -1085,10 +1085,7 @@ function initializeKeyHarmonySection() {
 }
 
 // Handle key selection
-function selectKey(key, buttonElement) {
-    // Remove active class from all key buttons
-    document.querySelectorAll('.key-button').forEach(btn => btn.classList.remove('active'));
-    buttonElement.classList.add('active');
+function selectKey(key) {
     
     // Get diatonic chords using Tonal.js
     const scale = Tonal.Scale.get(`${key} major`);
@@ -1140,7 +1137,9 @@ function displayChord(chordName, buttonElement) {
     
     // Use first voicing
     const chordData = shapes[chordName][0];
-    renderChordDiagram(chordData, '#chord-display-container');
+    const container = document.getElementById("chord-display-container");
+    container.innerHTML = '<div id="chord-diagram"></div>';
+    renderChordDiagram(chordData, "#chord-diagram");
 }
 
 // Display common chord progressions
@@ -1268,4 +1267,169 @@ window.onload = async () => {
     initializeControls(); // Setup controls and run initial generation
     initializeKeyHarmonySection(); // Setup the interactive harmony section - This function does not exist
     initializeAccordions(); // Initialize all accordion elements
+    await loadTabCsv(); // Load tablature data
+    
+    // Add play/stop button listeners
+    document.getElementById("play-tab-btn")?.addEventListener("click", playManuscript);
+    document.getElementById("stop-tab-btn")?.addEventListener("click", stopManuscript);
 };
+
+// ========== MANUSCRIPT METHOD FIXES ==========
+
+// Global state for tab data
+let manuscriptTabData = null;
+
+// Centralized key selection function - syncs Circle of Fifths AND Root Note dropdown
+function setActiveKey(key) {
+    // Update Circle of Fifths button state
+    document.querySelectorAll('.key-button').forEach(btn => {
+        if (btn.textContent === key) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Update Root Note dropdown to match
+    const rootSelect = document.getElementById('rootSelect');
+    if (rootSelect) {
+        for (let i = 0; i < rootSelect.options.length; i++) {
+            if (rootSelect.options[i].textContent === key) {
+                rootSelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+    
+    // Update diatonic chords
+    selectKey(key);
+}
+
+// Load and parse CSV
+async function loadTabCsv() {
+    try {
+        const response = await fetch('/C_Major_Guitar_Tab_sequential.csv');
+        const csvText = await response.text();
+        manuscriptTabData = parseCsvToTabData(csvText);
+        console.log('Tab CSV loaded successfully');
+        renderAllPhases();
+    } catch (error) {
+        console.error('Error loading tab CSV:', error);
+    }
+}
+
+function parseCsvToTabData(csvText) {
+    const lines = csvText.split('\n');
+    const tabData = { e4: [], B3: [], G3: [], D3: [], A2: [], E2: [] };
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const cells = line.split(',');
+        const rowLabel = cells[0];
+        
+        if (tabData.hasOwnProperty(rowLabel)) {
+            for (let j = 1; j <= 16 && j < cells.length; j++) {
+                const fret = cells[j].trim();
+                tabData[rowLabel].push(fret || '');
+            }
+        }
+    }
+    return tabData;
+}
+
+function renderAllPhases() {
+    if (!manuscriptTabData) return;
+    renderManuscriptPhase('phase1-display', 0, 192);
+    renderManuscriptPhase('phase2-display', 192, 208);
+    renderManuscriptPhase('phase3-display', 208, 512);
+}
+
+function renderManuscriptPhase(containerId, startBeat, endBeat) {
+    if (!manuscriptTabData) return;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const strings = ['e4', 'B3', 'G3', 'D3', 'A2', 'E2'];
+    const beatsPerMeasure = 4;
+    const measuresPerBar = 4;
+    const beatsPerBar = beatsPerMeasure * measuresPerBar;
+    
+    let html = '<div class="tab-staff font-mono text-sm">';
+    
+    strings.forEach(stringName => {
+        html += `<div class="tab-staff-line flex">`;
+        html += `<span class="text-xs text-gray-600 w-8">${stringName}</span>`;
+        html += `<div class="tab-string-content flex flex-wrap">`;
+        
+        for (let beat = startBeat; beat < endBeat && beat < (manuscriptTabData[stringName]?.length || 0); beat++) {
+            const fret = manuscriptTabData[stringName][beat];
+            const displayFret = fret || '-';
+            
+            if (beat > startBeat && (beat - startBeat) % beatsPerMeasure === 0) {
+                html += '<span class="tab-separator px-1">|</span>';
+            }
+            
+            html += `<span class="tab-fret-cell w-6 text-center">${displayFret}</span>`;
+            
+            if (beat > startBeat && (beat - startBeat + 1) % beatsPerBar === 0 && beat < endBeat - 1) {
+                html += '</div></div><div class="tab-staff-line flex">';
+                html += `<span class="text-xs text-gray-600 w-8">${stringName}</span>`;
+                html += `<div class="tab-string-content flex flex-wrap">`;
+            }
+        }
+        
+        html += '</div></div>';
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+async function playManuscript() {
+    if (!manuscriptTabData) {
+        console.log('No tab data loaded');
+        return;
+    }
+    
+    await Tone.start();
+    Tone.Transport.stop();
+    Tone.Transport.cancel();
+    
+    const synth = new Tone.Synth().toDestination();
+    Tone.Transport.bpm.value = 120;
+    
+    const strings = ['e4', 'B3', 'G3', 'D3', 'A2', 'E2'];
+    const tuningMap = { 'e4': 64, 'B3': 59, 'G3': 55, 'D3': 50, 'A2': 45, 'E2': 40 };
+    const playableEvents = [];
+    const TIME_PER_BEAT = 0.125;
+    
+    strings.forEach(stringName => {
+        manuscriptTabData[stringName]?.forEach((fret, beatIndex) => {
+            if (fret && fret !== '' && fret !== '-') {
+                const time = beatIndex * TIME_PER_BEAT;
+                const baseMidi = tuningMap[stringName];
+                const noteMidi = baseMidi + parseInt(fret, 10);
+                const noteName = Tonal.Note.fromMidi(noteMidi);
+                
+                playableEvents.push({ time, note: noteName, duration: '16n' });
+            }
+        });
+    });
+    
+    const tabPart = new Tone.Part((time, event) => {
+        synth.triggerAttackRelease(event.note, event.duration, time);
+    }, playableEvents);
+    
+    tabPart.start(0);
+    Tone.Transport.start();
+    
+    console.log(`Playing ${playableEvents.length} notes`);
+}
+
+function stopManuscript() {
+    Tone.Transport.stop();
+    Tone.Transport.cancel();
+    console.log('Playback stopped');
+}

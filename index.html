@@ -173,6 +173,53 @@
             </div>
         </div>
 
+        <!-- Manuscript Method Tablature Section -->
+        <div id="manuscript-section" class="bg-gradient-to-br from-indigo-50 to-white p-6 md:p-8 rounded-xl shadow-2xl mb-10 border-t-4 border-indigo-600">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-2 text-center">The Manuscript Method</h2>
+            <p class="text-center text-gray-600 mb-6">Structured tablature training in three phases: Drill, Map, Apply</p>
+            
+            <div class="flex justify-center mb-6 space-x-4">
+                <button id="play-tab-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                    ▶ Play
+                </button>
+                <button id="stop-tab-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                    ■ Stop
+                </button>
+            </div>
+            
+            <!-- Phase 1: Drill -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3 border-b-2 border-indigo-300 pb-2">
+                    Phase 1: Technical Drill
+                </h3>
+                <p class="text-sm text-gray-600 mb-3 italic">Build muscle memory with repetitive patterns on each string</p>
+                <div id="phase1-display" class="tab-display bg-white p-4 rounded-lg shadow-inner overflow-x-auto">
+                    <!-- Phase 1 tablature will be rendered here -->
+                </div>
+            </div>
+            
+            <!-- Phase 2: Map -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3 border-b-2 border-green-300 pb-2">
+                    Phase 2: Positional Mapping
+                </h3>
+                <p class="text-sm text-gray-600 mb-3 italic">Learn the physical shape and note locations on the fretboard</p>
+                <div id="phase2-display" class="tab-display bg-white p-4 rounded-lg shadow-inner overflow-x-auto">
+                    <!-- Phase 2 tablature will be rendered here -->
+                </div>
+            </div>
+            
+            <!-- Phase 3: Apply -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3 border-b-2 border-purple-300 pb-2">
+                    Phase 3: Melodic Application
+                </h3>
+                <p class="text-sm text-gray-600 mb-3 italic">Apply your knowledge with musical fragments and cross-string playing</p>
+                <div id="phase3-display" class="tab-display bg-white p-4 rounded-lg shadow-inner overflow-x-auto">
+                    <!-- Phase 3 tablature will be rendered here -->
+                </div>
+            </div>
+        </div>
 
         <!-- Output Section -->
         <div id="fretboard-output" class="space-y-8">
