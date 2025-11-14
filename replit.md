@@ -14,6 +14,24 @@ This is an interactive web application that helps musicians:
 
 ## Recent Changes
 
+### November 14, 2025 (Sixth Session)
+- **MAJOR FEATURE: CAGED Chord Auto-Generation System** - Implemented smart chord position generator
+  - Created CAGED template system for major and minor chords (E-Shape, A-Shape, D-Shape, C-Shape patterns)
+  - Auto-generates multiple voicings across LOW/MID/HIGH fretboard positions for any chord
+  - Merges database chords with CAGED-generated positions for comprehensive coverage
+  - Example: A Major now shows open position + A-Shape (5th fret) + D-Shape (9th fret) + C-Shape positions
+  - Supports movable barre chord shapes transposed to correct fret positions
+  - Falls back to simple algorithm for 7th chords and other complex voicings not in CAGED system
+- **UX IMPROVEMENT: Page Section Reordering** - Reorganized layout for better workflow
+  - **New order**: Scale Menu → GUI Fretboard → Training Tablature → Interactive Key & Harmony
+  - Interactive Key & Harmony section moved to bottom for better focus on practice materials
+  - Fretboard visualization now appears directly after controls for immediate visual feedback
+  - Training tablature positioned before theory section for practice-first approach
+- **UX IMPROVEMENT: Default Orientation Changed** - Changed tablature default from "Both Tables" to "Strings as Rows"
+  - "Strings as Rows" is now the default view on page load
+  - Matches standard guitar tablature reading format (horizontal string layout)
+  - Users can still switch to "Both Tables" or "Frets as Rows" via radio buttons
+
 ### November 14, 2025 (Fifth Session)
 - **CRITICAL FIX: Circle of Fifths Bug** - Fixed missing buttons for F#, D♭, A♭, E♭, B♭ keys
   - Added key normalization function to convert Unicode ♯ to ASCII # for Tonal.js compatibility
