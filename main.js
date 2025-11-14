@@ -1025,81 +1025,140 @@ async function loadChordShapes() {
     }
 }
 
-// Render a chord diagram using SVGuitar
-function renderChordDiagram(chordData, targetDivId) {
-    const targetElement = document.querySelector(targetDivId);
-    if (!targetElement) {
-        console.error("SVGuitar Target Element not found:", targetDivId);
-        return;
-    }
-
-    // Clear the target div
-    targetElement.innerHTML = "";
-
-    // Initialize the SVGuitar chart
-    const chart = new svguitar.SVGuitarChord(targetDivId);
-
-    // Determine number of strings from chord data
-    const numStrings = chordData.frets ? chordData.frets.length : 6;
+// Render a text-based chord diagram (ASCII style)
+function renderTextChordDiagram(chordData, numStrings = 6) {
+    const frets = chordData.frets || [];
+    const fingers = chordData.fingers || [];
+    const title = chordData.title || '';
     
-    // Configure styling with dark, visible colors
-    chart.configure({
-        color: '#111',           // Dark color for strings/frets
-        strokeColor: '#111',     // Dark stroke
-        backgroundColor: 'transparent',
-        fretColor: '#666',       // Gray for fret markers
-        stringColor: '#333',     // Dark gray for strings
-        titleColor: '#111',      // Dark title
-        fingerColor: '#111',     // Dark finger positions
-        fingerTextColor: '#fff', // White text on dark circles
-        barreChordRadius: 0.25,
-        emptyStringIndicatorSize: 0.6,
-        strings: numStrings,
-        frets: 4
-    });
-
-    // Convert our chord data format to SVGuitar fingers format
-    // Our format: frets = [-1, 0, 2, 2, 1, 0] (thickest to thinnest, index 0 = thickest)
-    //             fingers = [0, 0, 2, 3, 1, 0] (finger numbers)
-    // SVGuitar format: fingers = [[string, fret, label], ...] where string 1 = leftmost
-    const svguitarFingers = [];
-    for (let i = 0; i < chordData.frets.length; i++) {
-        // SVGuitar wants left-to-right numbering: iterate in reverse order
-        // If our data is [thick...thin], SVGuitar wants us to map thick=numStrings, thin=1
-        const stringNum = numStrings - i;
-        const fret = chordData.frets[i];
-        const fingerNum = chordData.fingers[i];
-        
+    // Find the highest fret used (for display range)
+    const maxFret = Math.max(...frets.filter(f => f > 0));
+    const startFret = maxFret > 4 ? Math.max(1, maxFret - 3) : 0;
+    const displayFrets = maxFret > 4 ? 4 : 5; // Show 4-5 frets
+    
+    // String names (default to 6-string guitar)
+    const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
+    const displayNames = stringNames.slice(-numStrings);
+    
+    let diagram = '';
+    
+    // Title
+    diagram += `<div class="chord-diagram-title">${title}</div>\n`;
+    
+    // Fret marker (if not open position)
+    if (startFret > 0) {
+        diagram += `<div class="chord-fret-marker">[${startFret}]</div>\n`;
+    }
+    
+    // String indicators (x = muted, o = open, or empty)
+    diagram += '<div class="chord-string-indicators">';
+    for (let i = 0; i < numStrings; i++) {
+        const fret = frets[i];
         if (fret === -1) {
-            // Muted string
-            svguitarFingers.push([stringNum, 'x']);
-        } else if (fret === 0) {
-            // Open string
-            svguitarFingers.push([stringNum, 0]);
+            diagram += 'x ';
+        } else if (fret === 0 && startFret === 0) {
+            diagram += 'o ';
         } else {
-            // Fretted note with finger label
-            const label = fingerNum > 0 ? fingerNum.toString() : '';
-            svguitarFingers.push([stringNum, fret, label]);
+            diagram += '  ';
         }
     }
+    diagram += '</div>\n';
+    
+    // Build the fretboard grid
+    for (let fretNum = startFret; fretNum <= startFret + displayFrets; fretNum++) {
+        diagram += '<div class="chord-fret-row">';
+        
+        // Draw horizontal line (fret)
+        for (let s = 0; s < numStrings; s++) {
+            if (fretNum === startFret && startFret === 0) {
+                diagram += '━━'; // Nut (thick line at top)
+            } else {
+                diagram += '──'; // Regular fret
+            }
+            if (s < numStrings - 1) diagram += '┬';
+        }
+        
+        diagram += '</div>\n';
+        
+        // Draw finger positions between this fret and next
+        if (fretNum < startFret + displayFrets) {
+            diagram += '<div class="chord-finger-row">';
+            for (let s = 0; s < numStrings; s++) {
+                const stringFret = frets[s];
+                const fingerNum = fingers[s];
+                
+                // Check if this string has a finger on this fret
+                if (stringFret === fretNum + 1) {
+                    const label = fingerNum > 0 ? fingerNum.toString() : '●';
+                    diagram += ` ${label}`;
+                } else {
+                    diagram += ' │';
+                }
+                
+                if (s < numStrings - 1) diagram += ' ';
+            }
+            diagram += '</div>\n';
+        }
+    }
+    
+    return diagram;
+}
 
-    // Convert barres format if present
-    // Our barre data already uses correct string numbers, just rename properties
-    const svguitarBarres = (chordData.barres || []).map(barre => ({
-        fromString: barre.from,  // Already correct (6=thickest, 1=thinnest)
-        toString: barre.to,
-        fret: barre.fret
-    }));
-
-    console.log('SVGuitar fingers:', svguitarFingers);
-    console.log('SVGuitar barres:', svguitarBarres);
-
-    // Configure and draw the chart
-    chart.chord({
-        fingers: svguitarFingers,
-        barres: svguitarBarres,
-        title: chordData.title
-    }).draw();
+// Generate a fallback chord when not found in database
+function generateFallbackChord(chordName, numStrings = 6) {
+    try {
+        // Parse the chord using Tonal.js
+        const chord = Tonal.Chord.get(chordName);
+        if (!chord.notes || chord.notes.length === 0) {
+            return null;
+        }
+        
+        // Get the root note
+        const root = chord.tonic;
+        const chordNotes = chord.notes;
+        
+        console.log(`Generating fallback for ${chordName}:`, chordNotes);
+        
+        // Standard tuning for 6-string guitar
+        const tuning = ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'];
+        const stringTuning = tuning.slice(-numStrings);
+        
+        const frets = [];
+        const fingers = [];
+        
+        // For each string, find the nearest chord tone within first 5 frets
+        for (let s = 0; s < numStrings; s++) {
+            const openNote = stringTuning[s];
+            const openNoteName = openNote.slice(0, -1); // Remove octave
+            let foundFret = -1; // Mute by default
+            
+            // Check frets 0-4 for a chord tone
+            for (let f = 0; f <= 4; f++) {
+                const fretNote = Tonal.Note.transpose(openNote, Tonal.Interval.fromSemitones(f));
+                const fretNoteName = Tonal.Note.pitchClass(fretNote);
+                
+                // Check if this note is in the chord
+                if (chordNotes.includes(fretNoteName)) {
+                    foundFret = f;
+                    break;
+                }
+            }
+            
+            frets.push(foundFret);
+            fingers.push(foundFret > 0 ? foundFret : 0); // Simple fingering
+        }
+        
+        return {
+            name: 'Generated',
+            frets: frets,
+            fingers: fingers,
+            barres: [],
+            title: `${chordName} (Auto-Generated)`
+        };
+    } catch (error) {
+        console.error('Error generating fallback chord:', error);
+        return null;
+    }
 }
 
 // Initialize the Circle of Fifths and harmony section
@@ -1168,7 +1227,7 @@ function selectKey(key) {
     displayProgressions(key, chordNames);
 }
 
-// Display a chord diagram
+// Display a chord diagram (multiple positions)
 function displayChord(chordName, buttonElement) {
     console.log('displayChord called with:', chordName);
     
@@ -1179,31 +1238,45 @@ function displayChord(chordName, buttonElement) {
     // Get current instrument
     const instrumentSelect = document.getElementById('instrumentFilter');
     const instrumentKey = instrumentSelect ? instrumentSelect.value : 'guitar_6';
-    const instrumentName = '6-String Guitar (EADGBe)'; // Default
+    const instrumentName = '6-String Guitar (EADGBe)'; // Default for now
     
     console.log('Instrument:', instrumentName);
     console.log('Available shapes:', chordShapesData);
     
-    // Look up chord shape
+    const container = document.getElementById("chord-display-container");
+    
+    // Look up chord shapes
     const shapes = chordShapesData[instrumentName];
     console.log('Shapes for instrument:', shapes);
     
-    if (!shapes || !shapes[chordName]) {
-        const container = document.getElementById('chord-display-container');
-        if (container) {
-            container.innerHTML = `<p class="text-gray-500 italic">Chord shape not available for ${chordName}</p>`;
+    let chordVoicings = [];
+    
+    if (shapes && shapes[chordName]) {
+        // Use all voicings from the database
+        chordVoicings = shapes[chordName];
+        console.log(`Found ${chordVoicings.length} voicing(s) for ${chordName}`);
+    } else {
+        // Generate fallback chord
+        console.log(`Chord ${chordName} not found, generating fallback...`);
+        const fallback = generateFallbackChord(chordName, 6);
+        if (fallback) {
+            chordVoicings = [fallback];
+        } else {
+            container.innerHTML = `<p class="text-gray-500 italic">Unable to generate chord for ${chordName}</p>`;
+            return;
         }
-        console.log('Chord not found:', chordName);
-        return;
     }
     
-    // Use first voicing
-    const chordData = shapes[chordName][0];
-    console.log('Chord data:', chordData);
+    // Render all voicings side-by-side
+    container.innerHTML = '<div class="chord-diagrams-container"></div>';
+    const diagrams = container.querySelector('.chord-diagrams-container');
     
-    const container = document.getElementById("chord-display-container");
-    container.innerHTML = '<div id="chord-diagram"></div>';
-    renderChordDiagram(chordData, "#chord-diagram");
+    chordVoicings.forEach((chordData, index) => {
+        const diagramDiv = document.createElement('div');
+        diagramDiv.className = 'chord-diagram-item';
+        diagramDiv.innerHTML = renderTextChordDiagram(chordData, chordData.frets.length);
+        diagrams.appendChild(diagramDiv);
+    });
 }
 
 // Display common chord progressions

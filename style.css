@@ -358,3 +358,74 @@ select, button, input[type="number"] {
     width: 100%;
     height: 12px;
 }
+
+/* ====================================
+   TEXT-BASED CHORD DIAGRAM STYLES
+   ==================================== */
+
+/* Container for multiple chord diagrams side-by-side */
+.chord-diagrams-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: flex-start;
+    margin-top: 1rem;
+}
+
+/* Individual chord diagram box */
+.chord-diagram-item {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1.2;
+    background: #fff;
+    border: 2px solid #111;
+    padding: 1rem;
+    min-width: 180px;
+    text-align: center;
+}
+
+/* Chord title */
+.chord-diagram-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 0.5rem;
+    color: #111;
+    text-align: center;
+}
+
+/* Fret position marker (e.g., [5] for 5th position) */
+.chord-fret-marker {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 0.25rem;
+    text-align: right;
+}
+
+/* String indicators (x o o o o x) */
+.chord-string-indicators {
+    font-size: 14px;
+    letter-spacing: 0.5em;
+    margin-bottom: 0.25rem;
+    color: #111;
+    font-weight: bold;
+}
+
+/* Horizontal fret line row */
+.chord-fret-row {
+    line-height: 1;
+    letter-spacing: 0;
+    color: #111;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+}
+
+/* Finger position row (between frets) */
+.chord-finger-row {
+    line-height: 1.4;
+    letter-spacing: 0.15em;
+    color: #111;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+}
