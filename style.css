@@ -196,39 +196,141 @@ select, button, input[type="number"] {
 }
 
 
-/* Tablature Custom Styling (from original file) */
+/* ===== MANUSCRIPT METHOD STYLING (Minimalist Design) ===== */
+
+/* Container */
+.manuscript-container {
+    border: 1px solid #111;
+    padding: 24px;
+    max-width: 960px;
+    margin: 0 auto 48px;
+    background: #fff;
+}
+
+/* Title and Subtitle */
+.manuscript-title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 8px 0;
+    color: #111;
+}
+
+.manuscript-subtitle {
+    font-size: 14px;
+    text-align: center;
+    margin: 0 0 20px 0;
+    color: #111;
+}
+
+/* Play Controls */
+.manuscript-controls {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+    margin-bottom: 24px;
+}
+
+.manuscript-btn {
+    border: 1px solid #111;
+    padding: 8px 16px;
+    background: #fff;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.manuscript-btn:hover {
+    background: #f5f5f5;
+}
+
+.manuscript-btn:active {
+    background: #e0e0e0;
+}
+
+/* Phase Sections */
+.manuscript-phase {
+    margin-bottom: 32px;
+}
+
+.phase-title {
+    font-size: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 4px 0;
+    color: #111;
+}
+
+.phase-description {
+    font-size: 13px;
+    margin: 4px 0 12px 0;
+    color: #111;
+}
+
+/* Tab Display Container */
+.tab-display {
+    background: #fff;
+    border: 1px solid #111;
+    padding: 16px 12px;
+    font-family: "Courier Prime", "Courier New", Consolas, Monaco, monospace;
+    font-size: 14px;
+    line-height: 16px;
+    overflow-x: auto;
+}
+
+/* Tab Staff Lines */
+.tab-staff {
+    font-family: "Courier Prime", "Courier New", Consolas, Monaco, monospace;
+    font-size: 14px;
+    line-height: 1;
+}
+
 .tab-staff-line {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
+    gap: 0;
+    min-height: 18px;
+    border-bottom: 1px solid #111;
 }
+
+.tab-staff-line:last-child {
+    border-bottom-width: 2px;
+}
+
 .tab-string-content {
     display: flex;
-    align-items: center;
-    border-bottom: 1px solid #9ca3af; /* String line color */
-    min-width: max-content; /* Prevent wrapping */
+    align-items: flex-end;
+    gap: 0;
+    min-width: max-content;
 }
-.tab-staff-line:last-child .tab-string-content {
-     border-bottom-width: 2px; /* Thicker line for the lowest string */
-     border-color: #4b5563;
-}
+
+/* Tab Fret Cells */
 .tab-fret-cell {
-    display: inline-block;
-    width: 1.5rem; /* Standard width for 1-2 characters */
-    text-align: center;
-    padding: 0 0.125rem;
-    height: 1.5rem; /* Ensure consistent height */
-    line-height: 1.5rem; /* Center text vertically */
+    display: inline-flex;
+    justify-content: center;
+    align-items: flex-end;
+    width: 18px;
+    padding: 0 2px;
+    letter-spacing: 0;
+    line-height: 1;
 }
-/* NEW: Class for 8th note rests */
-.fret-dot.rest {
-    color: #cbd5e1; /* Lighter gray for 8th note rests */
-}
+
+/* Tab Separators (Measure Bars) */
 .tab-separator {
-    width: 0.5rem;
-    text-align: center;
-    font-weight: bolder;
+    width: 12px;
+    border-left: 1px solid #111;
+    margin: 0 6px;
+    height: 100%;
 }
-/* NEW: Wrapper for each visual bar of tab */
-.tab-bar {
-    margin-bottom: 1.5rem; /* Space between wrapped bars */
+
+/* String Labels */
+.tab-staff-line > span:first-child {
+    width: 32px;
+    text-align: left;
+    font-size: 12px;
+    padding-right: 8px;
+    color: #111;
 }
