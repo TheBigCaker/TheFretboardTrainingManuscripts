@@ -1037,7 +1037,7 @@ function renderChordDiagram(chordData, targetDivId) {
     targetElement.innerHTML = "";
 
     // Initialize the SVGuitar chart
-    const chart = new svguitar.SVGuitarChord(targetDivId);
+    const chart = new SVGuitarChord(targetDivId);
 
     // Configure and draw the chart
     chart.chord({
@@ -1356,34 +1356,41 @@ function renderManuscriptPhase(containerId, startBeat, endBeat) {
     const measuresPerBar = 4;
     const beatsPerBar = beatsPerMeasure * measuresPerBar;
     
-    let html = '<div class="tab-staff">';
+    let html = '<div class="tab-container"><div class="tab-string-labels">';
     
+    // Add string labels column
     strings.forEach(stringName => {
-        html += `<div class="tab-staff-line">`;
-        html += `<span>${stringName}</span>`;
-        html += `<div class="tab-string-content">`;
-        
-        for (let beat = startBeat; beat < endBeat && beat < (manuscriptTabData[stringName]?.length || 0); beat++) {
-            const fret = manuscriptTabData[stringName][beat];
-            const displayFret = fret || '-';
-            
-            if (beat > startBeat && (beat - startBeat) % beatsPerMeasure === 0) {
-                html += '<span class="tab-separator"></span>';
-            }
-            
-            html += `<span class="tab-fret-cell">${displayFret}</span>`;
-            
-            if (beat > startBeat && (beat - startBeat + 1) % beatsPerBar === 0 && beat < endBeat - 1) {
-                html += '</div></div><div class="tab-staff-line">';
-                html += `<span>${stringName}</span>`;
-                html += `<div class="tab-string-content">`;
-            }
+        html += `<div class="tab-string-label">${stringName}</div>`;
+    });
+    html += '</div><div class="tab-staff">';
+    
+    // Loop through beats, displaying all strings vertically at each beat
+    for (let beat = startBeat; beat < endBeat; beat++) {
+        // Add measure separator every 4 beats (but not at the start)
+        if (beat > startBeat && (beat - startBeat) % beatsPerMeasure === 0) {
+            html += '<div class="tab-measure-separator"></div>';
         }
         
-        html += '</div></div>';
-    });
+        // Wrap to new bar every 16 beats
+        if (beat > startBeat && (beat - startBeat) % beatsPerBar === 0) {
+            html += '</div></div><div class="tab-container"><div class="tab-string-labels">';
+            strings.forEach(stringName => {
+                html += `<div class="tab-string-label">${stringName}</div>`;
+            });
+            html += '</div><div class="tab-staff">';
+        }
+        
+        // Create a vertical column for this beat showing all 6 strings
+        html += '<div class="tab-beat-column">';
+        strings.forEach(stringName => {
+            const fret = manuscriptTabData[stringName]?.[beat];
+            const displayFret = fret !== undefined && fret !== '' ? fret : '-';
+            html += `<div class="tab-fret-cell">${displayFret}</div>`;
+        });
+        html += '</div>';
+    }
     
-    html += '</div>';
+    html += '</div></div>';
     container.innerHTML = html;
 }
 

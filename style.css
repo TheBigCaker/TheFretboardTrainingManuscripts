@@ -281,56 +281,78 @@ select, button, input[type="number"] {
     overflow-x: auto;
 }
 
-/* Tab Staff Lines */
+/* Tab Container - holds labels + staff */
+.tab-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+/* String Labels Column */
+.tab-string-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-top: 8px;
+}
+
+.tab-string-label {
+    width: 24px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 12px;
+    font-family: "Courier Prime", "Courier New", Consolas, Monaco, monospace;
+    color: #111;
+}
+
+/* Tab Staff - Horizontal layout with vertical beat columns */
 .tab-staff {
     font-family: "Courier Prime", "Courier New", Consolas, Monaco, monospace;
     font-size: 14px;
     line-height: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    padding: 8px 0;
 }
 
-.tab-staff-line {
+/* Each beat is a vertical column showing all 6 strings */
+.tab-beat-column {
     display: flex;
-    align-items: flex-end;
+    flex-direction: column;
+    align-items: center;
     gap: 0;
-    min-height: 18px;
+}
+
+/* Fret cells stack vertically */
+.tab-fret-cell {
+    width: 20px;
+    height: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    letter-spacing: 0;
     border-bottom: 1px solid #111;
 }
 
-.tab-staff-line:last-child {
+/* Last string (E2 - 6th in order) gets thicker border */
+.tab-beat-column .tab-fret-cell:last-child {
     border-bottom-width: 2px;
 }
 
-.tab-string-content {
-    display: flex;
-    align-items: flex-end;
-    gap: 0;
-    min-width: max-content;
+/* Measure Separators (every 4 beats) */
+.tab-measure-separator {
+    width: 1px;
+    background: #111;
+    align-self: stretch;
+    margin: 0 8px;
 }
 
-/* Tab Fret Cells */
-.tab-fret-cell {
-    display: inline-flex;
-    justify-content: center;
-    align-items: flex-end;
-    width: 18px;
-    padding: 0 2px;
-    letter-spacing: 0;
-    line-height: 1;
-}
-
-/* Tab Separators (Measure Bars) */
-.tab-separator {
-    width: 12px;
-    border-left: 1px solid #111;
-    margin: 0 6px;
-    height: 100%;
-}
-
-/* String Labels */
-.tab-staff-line > span:first-child {
-    width: 32px;
-    text-align: left;
-    font-size: 12px;
-    padding-right: 8px;
-    color: #111;
+/* Bar Breaks (every 16 beats) */
+.tab-bar-break {
+    width: 100%;
+    height: 12px;
 }
