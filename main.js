@@ -1,4 +1,4 @@
-import { TUNINGS, SCALES } from './database.js';
+import { TUNINGS, SCALES, CHORD_SHAPES } from './database.js';
 // --- CONSTANTS ---
 const FRET_SPACING = 75; // Standard width for each fret segment in the GUI (in px)
 const STRING_PITCH_GAP = 40; // Vertical gap between strings (in px)
@@ -1570,6 +1570,177 @@ function initializeControls() {
     });
 
     generate(); // Initial generation
+}
+
+// --- NEW: Key & Harmony Section Logic ---
+
+let chordShapes = {}; // This will be populated from JSON
+
+/**
+ * Loads chord shape data from the JSON file.
+ */
+async function loadChordShapes() {
+    try {
+        const response = await fetch('/chord_shapes.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        chordShapes = await response.json();
+        console.log("Chord shapes loaded successfully.");
+    } catch (error) {
+        console.error("Failed to load chord shapes:", error);
+        // Display an error to the user in the chord diagram section
+        const chordDisplay = document.getElementById('chord-display-container');
+        if (chordDisplay) {
+            chordDisplay.innerHTML = `<p class="text-red-500">Error: Could not load chord_shapes.json. Please check the file and console for details.</p>`;
+        }
+    }
+}
+
+
+/**
+ * Initializes the entire key and harmony section.
+ */
+function initializeKeyHarmonySection() {
+    populateCircleOfFifths();
+    // Set "C" as the default selected key
+    selectKey('C');
+}
+
+/**
+ * Populates the Circle of Fifths with selectable key buttons.
+ */
+function populateCircleOfFifths() {
+    const circleContainer = document.querySelector('.circle-of-fifths');
+    if (!circleContainer) return;
+
+    const keys = [
+        'C', 'G', 'D', 'A', 'E', 'B',
+        'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F'
+    ];
+
+    keys.forEach((key, index) => {
+        const angle = (index / keys.length) * 2 * Math.PI - (Math.PI / 2); // Start C at the top
+        const radius = 100; // Circle radius in pixels
+        const x = radius + radius * Math.cos(angle) - 15; // Button radius offset
+        const y = radius + radius * Math.sin(angle) - 15;
+
+        const button = document.createElement('button');
+        button.textContent = key;
+        button.className = 'key-button';
+        button.style.left = `${x}px`;
+        button.style.top = `${y}px`;
+        button.dataset.key = key;
+
+        button.addEventListener('click', () => selectKey(key));
+        circleContainer.appendChild(button);
+    });
+}
+
+/**
+ * Handles the logic when a key is selected from the Circle of Fifths.
+ * @param {string} key - The selected musical key (e.g., "C", "G#").
+ */
+function selectKey(key) {
+    // 1. Update button styles
+    document.querySelectorAll('.key-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.key === key);
+    });
+
+    // 2. Get diatonic chords for the selected key
+    const chords = Tonal.Scale.chords(key + ' major');
+
+    // 3. Display diatonic chord buttons
+    displayDiatonicChords(key, chords);
+
+    // 4. Display common chord progressions
+    displayCommonProgressions(key, chords);
+
+    // 5. Clear the chord diagram display
+    const chordDisplay = document.getElementById('chord-display-container');
+    chordDisplay.innerHTML = `<p class="text-gray-500 italic">Select a chord to display its diagram.</p>`;
+}
+
+/**
+ * Displays the diatonic chords as clickable buttons.
+ * @param {string} key - The root key.
+ * @param {string[]} chords - An array of diatonic chord names.
+ */
+function displayDiatonicChords(key, chords) {
+    const container = document.getElementById('diatonic-chords-display');
+    container.innerHTML = ''; // Clear previous chords
+
+    const romanNumerals = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+
+    chords.forEach((chord, index) => {
+        const button = document.createElement('button');
+        button.className = 'diatonic-chord-button';
+        button.innerHTML = `<span class="font-bold">${romanNumerals[index]}</span><span class="text-sm">${chord}</span>`;
+        button.dataset.chord = chord;
+        button.dataset.key = key;
+
+        button.addEventListener('click', () => displayChordDiagram(chord));
+        container.appendChild(button);
+    });
+}
+
+/**
+ * Displays common chord progressions for the selected key.
+ * @param {string} key - The root key.
+ * @param {string[]} chords - The array of diatonic chords.
+ */
+function displayCommonProgressions(key, chords) {
+    const container = document.getElementById('chord-progression-display');
+    const roman = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+
+    const progressions = [
+        { name: 'The "Pop" Progression', sequence: [0, 4, 5, 3] }, // I-V-vi-IV
+        { name: 'The "50s" Progression', sequence: [0, 5, 3, 4] }, // I-vi-IV-V
+        { name: 'The "Andalusian Cadence"', sequence: [5, 4, 3, 4] }, // vi-V-IV-V (in minor context, but common)
+        { name: 'The "Jazz" Progression', sequence: [1, 4, 0] }      // ii-V-I
+    ];
+
+    let html = `<h4 class="font-semibold text-gray-700 mb-2">Common Progressions in ${key} Major:</h4>`;
+    progressions.forEach(prog => {
+        const chordSequence = prog.sequence.map(i => chords[i]).join(' &rarr; ');
+        const romanSequence = prog.sequence.map(i => roman[i]).join('-');
+        html += `<div class="progression-item">
+                   <span class="font-medium">${prog.name} (${romanSequence}):</span>
+                   <span>${chordSequence}</span>
+                 </div>`;
+    });
+    container.innerHTML = html;
+}
+
+/**
+ * Renders a chord diagram using the SVGuitar library.
+ * @param {string} chordName - The name of the chord to display (e.g., "Cmaj7").
+ */
+function displayChordDiagram(chordName) {
+    const container = document.getElementById('chord-display-container');
+    container.innerHTML = ''; // Clear previous diagram
+
+    // Sanitize chord name for lookup (e.g., "Cmaj7" -> "maj7")
+    const quality = Tonal.Chord.get(chordName).aliases[0] || Tonal.Chord.get(chordName).quality;
+    
+    // Find the first available shape for this chord quality
+    const shape = chordShapes[quality.toLowerCase()];
+
+    if (shape) {
+        try {
+            const diagram = new SVGuitar(container);
+            diagram.chord({
+                ...shape,
+                name: chordName
+            });
+        } catch (error) {
+            console.error(`Error rendering chord diagram for ${chordName}:`, error);
+            container.innerHTML = `<p class="text-red-500">Could not render diagram for ${chordName}.</p>`;
+        }
+    } else {
+        container.innerHTML = `<p class="text-gray-500">No diagram available for "${chordName}".</p>`;
+        console.warn(`No shape found for chord quality: ${quality}`);
+    }
 }
 
 

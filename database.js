@@ -128,3 +128,8 @@ export const SCALES = {
         { name: 'Lydian Dominant', intervals: [0, 2, 4, 6, 7, 9, 10] }
     ]
 };
+
+// Part IV: Chord Shape Library (for Chord Diagram Display)
+export const CHORD_SHAPES = {
+    // To be populated from chord_shapes.json
+};
