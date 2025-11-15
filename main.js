@@ -1710,36 +1710,62 @@ function transposeTabData(tabData, semitones, instrumentKey = 'guitar_6') {
         return tabData;
     }
     
-    // Get the source instrument's tuning (original is guitar_6)
+    // Get source tunings (guitar_6 as primary, guitar_7 for extended range)
     const sourceTuning = TUNINGS['guitar_6'];
+    const sourceTuning7 = TUNINGS['guitar_7'];
     
-    // Map source strings to target strings based on open note matching
-    // For now, we'll use a simple approach: map by relative pitch
+    // Helper function to get note index at fret
+    function getNoteIndexAtFret(baseNoteIndex, fretNum) {
+        return (baseNoteIndex + fretNum) % 12;
+    }
+    
+    // Process each target instrument string
     targetTuning.tuning.forEach(targetString => {
-        // Create consistent string key using label + octave (matches CSV format)
-        // CSV uses: e4, B3, G3, D3, A2, E2
         const targetStringLabel = `${targetString.label}${targetString.octave}`;
-        
-        // Find closest matching source string or generate from pattern
         let sourceStringLabel = null;
+        let sourceString = null;
         
-        // Try to find exact match first based on open_note
-        for (const sourceString of sourceTuning.tuning) {
-            if (sourceString.open_note === targetString.open_note) {
-                sourceStringLabel = `${sourceString.label}${sourceString.octave}`;
+        // Step 1: Try exact open note match from 6-string guitar
+        for (const src of sourceTuning.tuning) {
+            if (src.open_note === targetString.open_note) {
+                sourceStringLabel = `${src.label}${src.octave}`;
+                sourceString = src;
                 break;
             }
         }
         
-        // If no exact match, use the tablature pattern from closest source string
-        if (!sourceStringLabel) {
-            // For instruments with different string counts, map intelligently
-            // Use the middle strings of the source as reference
-            const sourceString = sourceTuning.tuning[Math.min(targetString.string - 1, sourceTuning.tuning.length - 1)];
-            sourceStringLabel = `${sourceString.label}${sourceString.octave}`;
+        // Step 2: If no match, try 7-string guitar (for low B on 5-string bass)
+        if (!sourceStringLabel && sourceTuning7) {
+            for (const src of sourceTuning7.tuning) {
+                if (src.open_note === targetString.open_note) {
+                    sourceStringLabel = `${src.label}${src.octave}`;
+                    sourceString = src;
+                    break;
+                }
+            }
         }
         
-        // Copy and transpose the tab data
+        // Step 3: If still no match, find string with closest note index (for ukulele, etc.)
+        if (!sourceStringLabel) {
+            // Find the guitar string with the closest note index
+            let closestString = sourceTuning.tuning[0];
+            let minDiff = Math.abs(targetString.note_index - closestString.note_index);
+            
+            for (const src of sourceTuning.tuning) {
+                const diff = Math.abs(targetString.note_index - src.note_index);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestString = src;
+                }
+            }
+            
+            sourceStringLabel = `${closestString.label}${closestString.octave}`;
+            sourceString = closestString;
+            
+            console.log(`No exact match for ${targetStringLabel}, using ${sourceStringLabel} (closest by note)`);
+        }
+        
+        // Step 4: Copy and transpose the tab data
         if (tabData[sourceStringLabel]) {
             transposed[targetStringLabel] = tabData[sourceStringLabel].map(fret => {
                 if (!fret || fret === '' || fret === '-') return fret;
@@ -1747,8 +1773,17 @@ function transposeTabData(tabData, semitones, instrumentKey = 'guitar_6') {
                 const fretNum = parseInt(fret, 10);
                 if (isNaN(fretNum)) return fret;
                 
-                // Transpose by adding semitones
-                const newFret = fretNum + semitones;
+                // Calculate the pitch difference between source and target open notes
+                let pitchAdjustment = 0;
+                if (sourceString) {
+                    // Calculate semitone difference between source and target open notes
+                    const sourcePitch = sourceString.note_index + (sourceString.octave * 12);
+                    const targetPitch = targetString.note_index + (targetString.octave * 12);
+                    pitchAdjustment = targetPitch - sourcePitch;
+                }
+                
+                // Transpose by semitones and adjust for pitch difference
+                const newFret = fretNum + semitones - pitchAdjustment;
                 
                 // Keep within reasonable fret range
                 if (newFret < 0) return '-';
@@ -1757,8 +1792,9 @@ function transposeTabData(tabData, semitones, instrumentKey = 'guitar_6') {
                 return newFret.toString();
             });
         } else {
-            // Generate empty pattern for this string
+            // Generate empty pattern for this string if source data doesn't exist
             transposed[targetStringLabel] = new Array(512).fill('-');
+            console.warn(`No source data found for ${sourceStringLabel}, creating empty pattern for ${targetStringLabel}`);
         }
     });
     

@@ -61,6 +61,15 @@ export const TUNINGS = {
             { string: 3, note_index: 7, octave: 3, thickness: 4, open_note: "G3", label: "G" },
             { string: 4, note_index: 2, octave: 3, thickness: 5, open_note: "D3", label: "D" }
         ]
+    },
+    'ukulele': {
+        name: 'Ukulele (GCEA)',
+        tuning: [
+            { string: 1, note_index: 9, octave: 4, thickness: 1, open_note: "A4", label: "A" },
+            { string: 2, note_index: 4, octave: 4, thickness: 2, open_note: "E4", label: "E" },
+            { string: 3, note_index: 0, octave: 4, thickness: 3, open_note: "C4", label: "C" },
+            { string: 4, note_index: 7, octave: 4, thickness: 4, open_note: "G4", label: "G" }
+        ]
     }
 };
 
