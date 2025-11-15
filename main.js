@@ -2012,25 +2012,70 @@ async function playManuscript() {
     Tone.Transport.cancel();
     
     const synth = new Tone.Synth().toDestination();
-    Tone.Transport.bpm.value = 120;
     
-    const strings = ['e4', 'B3', 'G3', 'D3', 'A2', 'E2'];
-    const tuningMap = { 'e4': 64, 'B3': 59, 'G3': 55, 'D3': 50, 'A2': 45, 'E2': 40 };
+    // Get BPM from UI or use default
+    const tempoInput = document.getElementById('tempo');
+    const bpm = tempoInput ? parseInt(tempoInput.value) || 120 : 120;
+    Tone.Transport.bpm.value = bpm;
+    
+    // Get current instrument to build tuning map
+    const instrumentSelect = document.getElementById('instrumentFilter');
+    const selectedInstrument = instrumentSelect ? instrumentSelect.value : 'guitar_6';
+    const instrumentTuning = TUNINGS[selectedInstrument];
+    
+    if (!instrumentTuning) {
+        console.error('Cannot find instrument tuning for:', selectedInstrument);
+        return;
+    }
+    
+    // Build tuning map dynamically from instrument's tuning
+    // String names in manuscriptTabData are formatted as "e4", "B3", etc.
+    const tuningMap = {};
+    const strings = [];
+    
+    instrumentTuning.tuning.forEach(stringInfo => {
+        const stringName = stringInfo.open_note;
+        strings.push(stringName);
+        // Convert note name to MIDI value
+        tuningMap[stringName] = Tonal.Note.midi(stringInfo.open_note);
+    });
+    
+    // Reverse to match the order in manuscriptTabData (thinnest to thickest)
+    strings.reverse();
+    
     const playableEvents = [];
-    const TIME_PER_BEAT = 0.125;
+    // Calculate time per beat based on BPM: (60 / bpm) / 4 for 16th notes
+    const TIME_PER_BEAT = (60 / bpm) / 4;
     
+    // Parse the tablature data and create playable events
     strings.forEach(stringName => {
-        manuscriptTabData[stringName]?.forEach((fret, beatIndex) => {
+        if (!manuscriptTabData[stringName]) {
+            console.warn(`No tab data for string: ${stringName}`);
+            return;
+        }
+        
+        manuscriptTabData[stringName].forEach((fret, beatIndex) => {
             if (fret && fret !== '' && fret !== '-') {
                 const time = beatIndex * TIME_PER_BEAT;
                 const baseMidi = tuningMap[stringName];
-                const noteMidi = baseMidi + parseInt(fret, 10);
+                const fretNum = parseInt(fret, 10);
+                
+                if (isNaN(fretNum) || baseMidi === undefined) {
+                    return;
+                }
+                
+                const noteMidi = baseMidi + fretNum;
                 const noteName = Tonal.Note.fromMidi(noteMidi);
                 
                 playableEvents.push({ time, note: noteName, duration: '16n' });
             }
         });
     });
+    
+    if (playableEvents.length === 0) {
+        console.log('No playable notes found in tablature');
+        return;
+    }
     
     const tabPart = new Tone.Part((time, event) => {
         synth.triggerAttackRelease(event.note, event.duration, time);
@@ -2039,7 +2084,7 @@ async function playManuscript() {
     tabPart.start(0);
     Tone.Transport.start();
     
-    console.log(`Playing ${playableEvents.length} notes`);
+    console.log(`Playing ${playableEvents.length} notes at ${bpm} BPM on ${instrumentTuning.name}`);
 }
 
 function stopManuscript() {
