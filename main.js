@@ -1027,20 +1027,27 @@ async function loadChordShapes() {
 
 // Render a text-based chord diagram in LANDSCAPE orientation (ASCII style)
 // Strings run horizontally (like looking at guitar from above)
-function renderTextChordDiagram(chordData, numStrings = 6) {
+function renderTextChordDiagram(chordData, instrumentKey = 'guitar_6') {
     const frets = chordData.frets || [];
     const fingers = chordData.fingers || [];
     const title = chordData.title || '';
+    
+    // Get instrument tuning and string names
+    const tuning = TUNINGS[instrumentKey];
+    if (!tuning) {
+        console.error('Unknown instrument:', instrumentKey);
+        return '<p>Error: Unknown instrument</p>';
+    }
+    
+    const numStrings = tuning.tuning.length;
+    
+    // Get string labels from tuning data (reverse order: thickest to thinnest for display)
+    const stringNames = tuning.tuning.map(s => s.label).reverse();
     
     // Find the highest fret used (for display range)
     const maxFret = Math.max(...frets.filter(f => f > 0));
     const startFret = maxFret > 4 ? Math.max(1, maxFret - 3) : 0;
     const displayFrets = maxFret > 4 ? 4 : 5; // Show 4-5 frets
-    
-    // String names (E A D G B e from bottom to top when looking at guitar)
-    // In our display: high e at top, low E at bottom
-    const stringNames = ['e', 'B', 'G', 'D', 'A', 'E'];
-    const displayNames = stringNames.slice(0, numStrings);
     
     let diagram = '';
     
@@ -1055,7 +1062,7 @@ function renderTextChordDiagram(chordData, numStrings = 6) {
     // Build the landscape fretboard
     diagram += '<div class="chord-fretboard-landscape">\n';
     
-    // For each string (high e to low E, top to bottom)
+    // For each string (thinnest at top, thickest at bottom)
     for (let stringIdx = numStrings - 1; stringIdx >= 0; stringIdx--) {
         diagram += '<div class="chord-string-row">\n';
         
@@ -1265,16 +1272,25 @@ function generateCAGEDChords(chordName, numStrings = 6) {
 }
 
 // Simple fallback for chords that don't fit CAGED patterns
-function generateSimpleFallback(chordName, numStrings = 6) {
+function generateSimpleFallback(chordName, instrumentKey = 'guitar_6') {
     try {
         const chord = Tonal.Chord.get(chordName);
         if (!chord.notes || chord.notes.length === 0) {
             return null;
         }
         
+        // Get tuning for the selected instrument
+        const tuning = TUNINGS[instrumentKey];
+        if (!tuning) {
+            console.error('Unknown instrument:', instrumentKey);
+            return null;
+        }
+        
         const chordNotes = chord.notes;
-        const tuning = ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'];
-        const stringTuning = tuning.slice(-numStrings);
+        const numStrings = tuning.tuning.length;
+        
+        // Get open notes from instrument tuning (reverse order: thickest to thinnest)
+        const stringTuning = tuning.tuning.map(s => s.open_note).reverse();
         
         const frets = [];
         const fingers = [];
@@ -1390,48 +1406,54 @@ function displayChord(chordName, buttonElement) {
     // Get current instrument
     const instrumentSelect = document.getElementById('instrumentFilter');
     const instrumentKey = instrumentSelect ? instrumentSelect.value : 'guitar_6';
-    const instrumentName = '6-String Guitar (EADGBe)'; // Default for now
+    const tuning = TUNINGS[instrumentKey];
+    const numStrings = tuning ? tuning.tuning.length : 6;
+    const instrumentName = tuning ? tuning.name : '6-String Guitar (EADGBe)';
     
-    console.log('Instrument:', instrumentName);
+    console.log('Instrument:', instrumentName, 'Key:', instrumentKey, 'Strings:', numStrings);
     console.log('Available shapes:', chordShapesData);
     
     const container = document.getElementById("chord-display-container");
     
     let chordVoicings = [];
     
-    // First, try to get database shapes
-    const shapes = chordShapesData[instrumentName];
-    if (shapes && shapes[chordName]) {
-        chordVoicings = [...shapes[chordName]];
-        console.log(`Found ${chordVoicings.length} database voicing(s) for ${chordName}`);
+    // First, try to get database shapes (only for 6-string guitar)
+    if (instrumentKey === 'guitar_6') {
+        const shapes = chordShapesData[instrumentName];
+        if (shapes && shapes[chordName]) {
+            chordVoicings = [...shapes[chordName]];
+            console.log(`Found ${chordVoicings.length} database voicing(s) for ${chordName}`);
+        }
     }
     
-    // Then add CAGED auto-generated positions
-    console.log(`Generating CAGED positions for ${chordName}...`);
-    const cagedVoicings = generateCAGEDChords(chordName, 6);
-    
-    if (cagedVoicings && cagedVoicings.length > 0) {
-        // Merge: Add CAGED voicings that aren't duplicates of database chords
-        cagedVoicings.forEach(caged => {
-            // Simple duplicate check based on fret positions
-            const isDuplicate = chordVoicings.some(existing => 
-                JSON.stringify(existing.frets) === JSON.stringify(caged.frets)
-            );
-            if (!isDuplicate) {
-                chordVoicings.push(caged);
-            }
-        });
-        console.log(`Added ${cagedVoicings.length} CAGED positions`);
+    // For guitar instruments, add CAGED auto-generated positions
+    if (instrumentKey === 'guitar_6' || instrumentKey === 'guitar_7') {
+        console.log(`Generating CAGED positions for ${chordName}...`);
+        const cagedVoicings = generateCAGEDChords(chordName, numStrings);
+        
+        if (cagedVoicings && cagedVoicings.length > 0) {
+            // Merge: Add CAGED voicings that aren't duplicates of database chords
+            cagedVoicings.forEach(caged => {
+                // Simple duplicate check based on fret positions
+                const isDuplicate = chordVoicings.some(existing => 
+                    JSON.stringify(existing.frets) === JSON.stringify(caged.frets)
+                );
+                if (!isDuplicate) {
+                    chordVoicings.push(caged);
+                }
+            });
+            console.log(`Added ${cagedVoicings.length} CAGED positions`);
+        }
     }
     
-    // If still no voicings, try simple fallback
+    // If still no voicings, try simple fallback (works for all instruments)
     if (chordVoicings.length === 0) {
-        console.log(`No voicings found, trying simple fallback for ${chordName}...`);
-        const fallback = generateSimpleFallback(chordName, 6);
+        console.log(`No voicings found, trying simple fallback for ${chordName} on ${instrumentName}...`);
+        const fallback = generateSimpleFallback(chordName, instrumentKey);
         if (fallback) {
             chordVoicings = [fallback];
         } else {
-            container.innerHTML = `<p class="text-gray-500 italic">Unable to generate chord for ${chordName}</p>`;
+            container.innerHTML = `<p class="text-gray-500 italic">Unable to generate chord for ${chordName} on ${instrumentName}</p>`;
             return;
         }
     }
@@ -1445,7 +1467,7 @@ function displayChord(chordName, buttonElement) {
     chordVoicings.forEach((chordData, index) => {
         const diagramDiv = document.createElement('div');
         diagramDiv.className = 'chord-diagram-item';
-        diagramDiv.innerHTML = renderTextChordDiagram(chordData, chordData.frets.length);
+        diagramDiv.innerHTML = renderTextChordDiagram(chordData, instrumentKey);
         diagrams.appendChild(diagramDiv);
     });
 }
