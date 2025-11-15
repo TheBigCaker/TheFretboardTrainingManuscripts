@@ -27,11 +27,9 @@ const NOTES_PER_BEAT = 4; // 16th notes
 const DEFAULT_BEATS_PER_MEASURE = 4; // 4/4 time
 const DEFAULT_NOTES_PER_MEASURE = DEFAULT_BEATS_PER_MEASURE * NOTES_PER_BEAT; // 16
 
-// --- FIX: Updated totals for comprehensive 5-section pedagogical structure (160 beats) ---
-const TOTAL_BEATS = 160; // 5 sections × 32 beats each
-const BEATS_PER_SECTION = 32;
-const TOTAL_MEASURES = 40; // 160 beats ÷ 4 beats/measure
-const TOTAL_DEFAULT_NOTES = 640; // 160 beats × 4 notes/beat
+// --- FIX: Updated totals based on the full CSV data (C_Major_Guitar_Tab_sequential.csv) ---
+const TOTAL_MEASURES = 32;
+const TOTAL_DEFAULT_NOTES = 512;
 // --- END SECTION 1 ---
 
 
@@ -1661,8 +1659,7 @@ window.onload = async () => {
 // ========== MANUSCRIPT METHOD FIXES ==========
 
 // Global state for tab data
-let manuscriptTabData = null; // Legacy single-instrument data
-let comprehensiveTabData = null; // Multi-instrument comprehensive data
+let manuscriptTabData = null;
 
 // Centralized key selection function - syncs Circle of Fifths AND Root Note dropdown
 function setActiveKey(key) {
@@ -1690,117 +1687,19 @@ function setActiveKey(key) {
     selectKey(key);
 }
 
-// Load and parse comprehensive CSV with all instruments and pedagogical sections
+// Load and parse CSV
 async function loadTabCsv() {
     try {
-        const response = await fetch('/comprehensive_c_major_tabs.csv');
+        const response = await fetch('/C_Major_Guitar_Tab_sequential.csv');
         const csvText = await response.text();
-        comprehensiveTabData = parseComprehensiveCsvToTabData(csvText);
-        console.log('Comprehensive tab CSV loaded successfully');
-        
-        // Set default guitar data for backwards compatibility
-        manuscriptTabData = comprehensiveTabData['guitar_6'] || {};
+        manuscriptTabData = parseCsvToTabData(csvText);
+        console.log('Tab CSV loaded successfully');
         renderAllPhases();
     } catch (error) {
-        console.error('Error loading comprehensive tab CSV:', error);
+        console.error('Error loading tab CSV:', error);
     }
 }
 
-function parseComprehensiveCsvToTabData(csvText) {
-    const lines = csvText.split('\n');
-    const allInstrumentsData = {};
-    
-    // Instrument key mapping (CSV name -> internal key)
-    const instrumentMapping = {
-        '6-String Guitar (EADGBe)': 'guitar_6',
-        '4-String Bass (EADG)': 'bass_4',
-        '5-String Bass (BEADG)': 'bass_5',
-        '5-String Banjo (gDGBD)': 'banjo_5',
-        'Mandolin (GDAE)': 'mandolin',
-        'Ukulele (GCEA - High G)': 'ukulele'
-    };
-    
-    let currentInstrument = null;
-    let currentInstrumentData = {};
-    const BEATS_PER_SECTION = 32;
-    const EXPECTED_TOTAL_BEATS = 160;
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (!line) continue;
-        
-        const cells = line.split(',');
-        
-        // Detect instrument header
-        if (cells[0] === 'Instrument' && cells[1]) {
-            // Save previous instrument data if exists
-            if (currentInstrument && Object.keys(currentInstrumentData).length > 0) {
-                allInstrumentsData[currentInstrument] = currentInstrumentData;
-            }
-            
-            // Start new instrument
-            const instrumentName = cells[1].trim();
-            currentInstrument = instrumentMapping[instrumentName];
-            currentInstrumentData = {};
-            continue;
-        }
-        
-        // Skip section headers, beat headers, empty lines, and metadata
-        if (cells[0] === 'Section' || 
-            cells[0] === 'Strings\\Beats>' || 
-            cells[0] === 'Key' ||
-            cells[0].trim() === '') {
-            continue;
-        }
-        
-        // Parse data rows (string name in first column, frets in remaining columns)
-        const stringLabel = cells[0];
-        if (stringLabel && currentInstrument) {
-            // Extract just the note part (e.g., "e4 (1st)" -> "e4", "G (1st)" -> "G")
-            const match = stringLabel.match(/^([A-Ga-g][\#\♯]?\d?)/);
-            if (match) {
-                const stringKey = match[1];
-                
-                // Initialize array if needed
-                if (!currentInstrumentData[stringKey]) {
-                    currentInstrumentData[stringKey] = [];
-                }
-                
-                // Parse exactly BEATS_PER_SECTION beats from this row (preserving empty cells)
-                // Each section row has: [string_label, beat1, beat2, ..., beat32]
-                for (let j = 1; j <= BEATS_PER_SECTION && j < cells.length; j++) {
-                    const fret = cells[j].trim();
-                    // Preserve empty cells as empty strings (rests)
-                    currentInstrumentData[stringKey].push(fret);
-                }
-            }
-        }
-    }
-    
-    // Save last instrument
-    if (currentInstrument && Object.keys(currentInstrumentData).length > 0) {
-        allInstrumentsData[currentInstrument] = currentInstrumentData;
-    }
-    
-    // Pad and validate: Ensure each instrument's strings have exactly 160 beats
-    for (const [instKey, instData] of Object.entries(allInstrumentsData)) {
-        for (const [stringKey, beats] of Object.entries(instData)) {
-            // Pad with empty strings if needed
-            while (beats.length < EXPECTED_TOTAL_BEATS) {
-                beats.push('');
-            }
-            
-            // Trim if too long (defensive normalization)
-            if (beats.length > EXPECTED_TOTAL_BEATS) {
-                beats.length = EXPECTED_TOTAL_BEATS;
-            }
-        }
-    }
-    
-    return allInstrumentsData;
-}
-
-// Legacy parser for old CSV format (kept for backwards compatibility)
 function parseCsvToTabData(csvText) {
     const lines = csvText.split('\n');
     const tabData = { e4: [], B3: [], G3: [], D3: [], A2: [], E2: [] };
@@ -1840,17 +1739,12 @@ function regenerateTabForCurrentSettings() {
     // Get base tab data for instrument
     let baseTabData, baseNoteMap;
     
-    // Priority 1: Use comprehensive CSV data if available
-    if (comprehensiveTabData && comprehensiveTabData[selectedInstrument]) {
-        baseTabData = comprehensiveTabData[selectedInstrument];
-    }
-    // Priority 2: Check if instrument has pre-generated C Major tabs
-    else if (BASE_TAB_BY_INSTRUMENT[selectedInstrument]) {
+    // Check if instrument has pre-generated C Major tabs
+    if (BASE_TAB_BY_INSTRUMENT[selectedInstrument]) {
         baseTabData = BASE_TAB_BY_INSTRUMENT[selectedInstrument].tab;
         baseNoteMap = BASE_TAB_BY_INSTRUMENT[selectedInstrument].noteMap;
-    }
-    // Priority 3: Fall back to manuscript data for guitar_6
-    else {
+    } else {
+        // Fall back to 6-string guitar CSV for guitar_6 only
         if (!manuscriptTabData) return;
         baseTabData = manuscriptTabData;
     }
@@ -1983,12 +1877,12 @@ function transposeTabData(tabData, semitones, instrumentKey = 'guitar_6') {
 
 function renderAllPhases() {
     if (!manuscriptTabData) return;
-    renderManuscriptPhase('complete-tab-display', 0, TOTAL_BEATS, 'guitar_6');
+    renderManuscriptPhase('complete-tab-display', 0, 512, 'guitar_6');
 }
 
 function renderAllPhasesForInstrument(instrumentKey) {
     if (!manuscriptTabData) return;
-    renderManuscriptPhase('complete-tab-display', 0, TOTAL_BEATS, instrumentKey);
+    renderManuscriptPhase('complete-tab-display', 0, 512, instrumentKey);
 }
 
 function renderManuscriptPhase(containerId, startBeat, endBeat, instrumentKey = 'guitar_6') {
