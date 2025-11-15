@@ -1,4 +1,5 @@
 import { TUNINGS, SCALES } from './database.js';
+import { generatePedagogicalTab } from './tab_generator.js';
 // --- CONSTANTS ---
 const FRET_SPACING = 75; // Standard width for each fret segment in the GUI (in px)
 const STRING_PITCH_GAP = 40; // Vertical gap between strings (in px)
@@ -1738,7 +1739,11 @@ window.onload = async () => {
     initializeControls(); // Setup controls and run initial generation
     initializeKeyHarmonySection(); // Setup the interactive harmony section
     initializeAccordions(); // Initialize all accordion elements
-    await loadTabCsv(); // Load tablature data
+    
+    // Generate initial tab algorithmically
+    generateTabForCurrentSettings();
+    renderAllPhases();
+    console.log('Initial tab generated successfully');
     
     // Add event listeners for tablature regeneration when selections change
     const instrumentSelect = document.getElementById('instrumentFilter');
@@ -1765,95 +1770,61 @@ window.onload = async () => {
 // Global state for tab data
 let manuscriptTabData = null;
 
-// Removed setActiveKey - now using Root Note dropdown directly
-
-// Load and parse CSV
-async function loadTabCsv() {
-    try {
-        const response = await fetch('/C_Major_Guitar_Tab_sequential.csv');
-        const csvText = await response.text();
-        manuscriptTabData = parseCsvToTabData(csvText);
-        console.log('Tab CSV loaded successfully');
-        renderAllPhases();
-    } catch (error) {
-        console.error('Error loading tab CSV:', error);
-    }
-}
-
-function parseCsvToTabData(csvText) {
-    const lines = csvText.split('\n');
-    const tabData = { e4: [], B3: [], G3: [], D3: [], A2: [], E2: [] };
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        
-        const cells = line.split(',');
-        const rowLabel = cells[0];
-        
-        if (tabData.hasOwnProperty(rowLabel)) {
-            for (let j = 1; j <= 16 && j < cells.length; j++) {
-                const fret = cells[j].trim();
-                tabData[rowLabel].push(fret || '');
-            }
-        }
-    }
-    return tabData;
-}
-
-// Regenerate tablature when instrument/root/scale selections change
-function regenerateTabForCurrentSettings() {
+// Generate tab algorithmically instead of loading CSV
+function generateTabForCurrentSettings() {
     const rootSelect = document.getElementById('rootSelect');
     const instrumentSelect = document.getElementById('instrumentFilter');
     const modeSelect = document.getElementById('modeSelect');
     
-    if (!rootSelect || !instrumentSelect || !modeSelect) return;
+    if (!rootSelect || !instrumentSelect || !modeSelect) {
+        console.log('Controls not ready yet');
+        return;
+    }
     
     // Get current selections
     const selectedRootIndex = parseInt(rootSelect.value);
     const selectedInstrument = instrumentSelect.value;
     const selectedMode = modeSelect.options[modeSelect.selectedIndex].text;
     
-    console.log(`Regenerating tab for: ${CHROMATIC_NOTES[selectedRootIndex].name} ${selectedMode} on ${selectedInstrument}`);
+    // Get root note name
+    const rootNote = CHROMATIC_NOTES[selectedRootIndex].name;
     
-    // Get base tab data for instrument
-    let baseTabData, baseNoteMap;
+    // Get scale intervals from modeSelect value
+    const scaleIntervals = modeSelect.value.split(',').map(i => parseInt(i));
     
-    // Check if instrument has pre-generated C Major tabs
-    if (BASE_TAB_BY_INSTRUMENT[selectedInstrument]) {
-        baseTabData = BASE_TAB_BY_INSTRUMENT[selectedInstrument].tab;
-        baseNoteMap = BASE_TAB_BY_INSTRUMENT[selectedInstrument].noteMap;
-    } else {
-        // Fall back to 6-string guitar CSV for guitar_6 only
-        if (!manuscriptTabData) return;
-        baseTabData = manuscriptTabData;
+    // Get instrument tuning
+    const instrumentTuning = TUNINGS[selectedInstrument];
+    if (!instrumentTuning) {
+        console.error('Unknown instrument:', selectedInstrument);
+        return;
     }
     
-    // Calculate transposition interval from C (index 0) to selected root
-    const transpositionInterval = selectedRootIndex; // Semitones to transpose
+    console.log(`Generating tab for: ${rootNote} ${selectedMode} on ${instrumentTuning.name}`);
     
-    let displayTabData;
+    // Generate tab algorithmically
+    manuscriptTabData = generatePedagogicalTab(instrumentTuning, rootNote, scaleIntervals);
     
-    // If root is C, use base data directly; otherwise transpose
-    if (transpositionInterval === 0) {
-        displayTabData = baseTabData;
-    } else {
-        // Transpose from the instrument's C Major base
-        displayTabData = transposeTabData(baseTabData, transpositionInterval, selectedInstrument);
-    }
-    
-    // Temporarily store the display data
-    const originalData = manuscriptTabData;
-    manuscriptTabData = displayTabData;
-    
-    // Re-render the tablature with selected instrument
-    renderAllPhasesForInstrument(selectedInstrument);
-    
-    // Restore original data (keep base data unchanged for guitar_6)
-    manuscriptTabData = originalData;
+    console.log('Tab generated successfully');
+    return manuscriptTabData;
 }
 
-// Transpose tablature data by a given interval (in semitones) and adapt to selected instrument
+// Regenerate tablature when instrument/root/scale selections change
+function regenerateTabForCurrentSettings() {
+    // Generate new tab with current settings
+    generateTabForCurrentSettings();
+    
+    // Get instrument for rendering
+    const instrumentSelect = document.getElementById('instrumentFilter');
+    if (!instrumentSelect) return;
+    
+    const selectedInstrument = instrumentSelect.value;
+    
+    // Re-render the tablature
+    renderAllPhasesForInstrument(selectedInstrument);
+}
+
+// OLD TRANSPOSE FUNCTION - NO LONGER USED (replaced by algorithmic generator)
+/*
 function transposeTabData(tabData, semitones, instrumentKey = 'guitar_6') {
     const transposed = {};
     
@@ -1954,6 +1925,8 @@ function transposeTabData(tabData, semitones, instrumentKey = 'guitar_6') {
     
     return transposed;
 }
+*/
+// END OLD TRANSPOSE FUNCTION
 
 function renderAllPhases() {
     if (!manuscriptTabData) return;
