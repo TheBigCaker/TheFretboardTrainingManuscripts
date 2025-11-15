@@ -170,13 +170,13 @@ function generateModule2PositionalScale(allStringsOpenNotes, scaleNotes, startFr
 
 // MODULE 3: Diatonic Melodic Patterns (Musical Application)
 // Generate non-linear melodic sequences using scale notes
-function generateModule3MelodicPattern(stringOpenNote, scaleNotes, measureIndex = 0) {
+function generateModule3MelodicPattern(stringOpenNote, scaleNotes, measureIndex = 0, maxFret = 12) {
     const availableNotes = [];
     const stringNormalized = normalizeNote(stringOpenNote);
     const stringIndex = CHROMATIC.indexOf(stringNormalized);
     
     // Find scale notes on this string (low to mid range)
-    for (let fret = 0; fret <= 12; fret++) {
+    for (let fret = 0; fret <= maxFret; fret++) {
         const fretNoteIndex = (stringIndex + fret) % 12;
         const fretNote = CHROMATIC[fretNoteIndex];
         if (scaleNotes.includes(fretNote)) {
@@ -209,12 +209,12 @@ function generateModule3MelodicPattern(stringOpenNote, scaleNotes, measureIndex 
 
 // MODULE 4: Harmonic Context (Chord Arpeggios)
 // Generate arpeggio patterns using chord tones (C, E, G for C major)
-function generateModule4ChordArpeggio(stringOpenNote, chordTones = ['C', 'E', 'G'], measureIndex = 0) {
+function generateModule4ChordArpeggio(stringOpenNote, chordTones = ['C', 'E', 'G'], measureIndex = 0, maxFret = 12) {
     const availableChordTones = [];
     
     // Find chord tones on this string with multiple positions
     for (const tone of chordTones) {
-        const positions = findNoteOnString(tone, stringOpenNote, 12);
+        const positions = findNoteOnString(tone, stringOpenNote, maxFret);
         positions.forEach(pos => {
             availableChordTones.push({
                 note: tone,
@@ -248,13 +248,13 @@ function generateModule4ChordArpeggio(stringOpenNote, chordTones = ['C', 'E', 'G
 
 // MODULE 5: Multi-Octave Scale Traversal (Fretboard Unification)
 // Generate full-range scale runs across the neck
-function generateModule5Traversal(stringOpenNote, scaleNotes, measureIndex = 0) {
+function generateModule5Traversal(stringOpenNote, scaleNotes, measureIndex = 0, maxFret = 15) {
     const availableNotes = [];
     const stringNormalized = normalizeNote(stringOpenNote);
     const stringIndex = CHROMATIC.indexOf(stringNormalized);
     
     // Find ALL scale notes on this string (extended range)
-    for (let fret = 0; fret <= 15; fret++) {
+    for (let fret = 0; fret <= maxFret; fret++) {
         const fretNoteIndex = (stringIndex + fret) % 12;
         const fretNote = CHROMATIC[fretNoteIndex];
         if (scaleNotes.includes(fretNote)) {
@@ -294,13 +294,13 @@ function generateModule5Traversal(stringOpenNote, scaleNotes, measureIndex = 0) 
 
 // MODULE 6: Capstone Virtuosity (Advanced Runs)
 // Generate rapid position-shifting melodic runs
-function generateModule6Virtuoso(stringOpenNote, scaleNotes, measureIndex = 0) {
+function generateModule6Virtuoso(stringOpenNote, scaleNotes, measureIndex = 0, maxFret = 12) {
     const availableNotes = [];
     const stringNormalized = normalizeNote(stringOpenNote);
     const stringIndex = CHROMATIC.indexOf(stringNormalized);
     
     // Find scale notes with wider range
-    for (let fret = 0; fret <= 12; fret++) {
+    for (let fret = 0; fret <= maxFret; fret++) {
         const fretNoteIndex = (stringIndex + fret) % 12;
         const fretNote = CHROMATIC[fretNoteIndex];
         if (scaleNotes.includes(fretNote)) {
@@ -344,6 +344,16 @@ function generateModule6Virtuoso(stringOpenNote, scaleNotes, measureIndex = 0) {
     return pattern.slice(0, 16);
 }
 
+// Helper function to get maximum playable fret for an instrument
+function getMaxFretForInstrument(instrumentName) {
+    // Different instruments have different typical fret counts
+    if (instrumentName.includes('Mandolin')) return 12;
+    if (instrumentName.includes('Banjo')) return 12;
+    if (instrumentName.includes('Ukulele')) return 12;
+    if (instrumentName.includes('Bass')) return 20;
+    return 15; // Default for guitars
+}
+
 // MAIN GENERATOR: Create complete 512-beat pedagogical tab
 export function generatePedagogicalTab(instrumentTuning, rootNote, scaleIntervals) {
     // Get scale notes
@@ -353,6 +363,9 @@ export function generatePedagogicalTab(instrumentTuning, rootNote, scaleInterval
     const strings = instrumentTuning.tuning.map(s => `${s.label}${s.octave}`).reverse();
     const stringOpenNotes = instrumentTuning.tuning.map(s => s.open_note).reverse();
     const numStrings = strings.length;
+    
+    // Get maximum fret for this instrument
+    const maxFret = getMaxFretForInstrument(instrumentTuning.name);
     
     // Pre-generate Module 2 data (vertical scale fragments across all strings)
     const module2Data = {};
@@ -378,7 +391,7 @@ export function generatePedagogicalTab(instrumentTuning, rootNote, scaleInterval
             if (m < 6) {
                 const activeString = m % numStrings;
                 if (activeString === stringIdx) {
-                    pattern = generateModule1SingleString(stringOpenNote, scaleNotes);
+                    pattern = generateModule1SingleString(stringOpenNote, scaleNotes, maxFret);
                 } else {
                     pattern = blankMeasure();
                 }
@@ -390,7 +403,7 @@ export function generatePedagogicalTab(instrumentTuning, rootNote, scaleInterval
             }
             // MODULE 3: M11-M16 (Melodic Patterns)
             else if (m < 16) {
-                pattern = generateModule3MelodicPattern(stringOpenNote, scaleNotes, m);
+                pattern = generateModule3MelodicPattern(stringOpenNote, scaleNotes, m, maxFret);
             }
             // MODULE 4: M17-M26 (Harmonic Context - using scale's I chord tones)
             else if (m < 26) {
@@ -400,15 +413,15 @@ export function generatePedagogicalTab(instrumentTuning, rootNote, scaleInterval
                     scaleNotes[2], // Third
                     scaleNotes[4]  // Fifth
                 ];
-                pattern = generateModule4ChordArpeggio(stringOpenNote, chordTones, m);
+                pattern = generateModule4ChordArpeggio(stringOpenNote, chordTones, m, maxFret);
             }
             // MODULE 5: M27-M30 (Multi-Octave Traversal - ALL strings participate)
             else if (m < 30) {
-                pattern = generateModule5Traversal(stringOpenNote, scaleNotes, m);
+                pattern = generateModule5Traversal(stringOpenNote, scaleNotes, m, maxFret);
             }
             // MODULE 6: M31-M32 (Capstone Virtuosity - ALL strings participate)
             else {
-                pattern = generateModule6Virtuoso(stringOpenNote, scaleNotes, m);
+                pattern = generateModule6Virtuoso(stringOpenNote, scaleNotes, m, maxFret);
             }
             
             measures.push(...pattern);
