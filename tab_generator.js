@@ -123,26 +123,30 @@ function generateModule2PositionalScale(allStringsOpenNotes, scaleNotes, startFr
     // Build a sequence that ascends across all strings with timeline placement
     const sequence = [];
     
-    // Collect scale notes from all strings in the position
+    // Collect multiple scale notes from all strings in the position
     for (let i = numStrings - 1; i >= 0; i--) {
         const stringOpenNote = allStringsOpenNotes[i];
         const stringNormalized = normalizeNote(stringOpenNote);
         const stringIndex = CHROMATIC.indexOf(stringNormalized);
         
-        // Find scale notes near the start position (within 5 frets)
+        // Find 2-3 scale notes near the start position (within 5 frets)
+        const stringNotes = [];
         for (let fret = startFret; fret <= startFret + 5; fret++) {
             const fretNoteIndex = (stringIndex + fret) % 12;
             const fretNote = CHROMATIC[fretNoteIndex];
             
             if (scaleNotes.includes(fretNote)) {
-                sequence.push({ stringIdx: i, fret });
-                break; // Take first scale note on this string
+                stringNotes.push({ stringIdx: i, fret });
+                if (stringNotes.length >= 2) break; // Collect 2-3 notes per string
             }
         }
+        
+        // Add collected notes to sequence
+        sequence.push(...stringNotes);
     }
     
     // Calculate beats per note (spread across 16 beats)
-    const beatsPerNote = sequence.length > 0 ? Math.floor(16 / sequence.length) : 16;
+    const beatsPerNote = sequence.length > 0 ? Math.max(1, Math.floor(16 / sequence.length)) : 16;
     
     // Create timeline-based patterns for each string
     for (let stringIdx = 0; stringIdx < numStrings; stringIdx++) {
@@ -166,7 +170,7 @@ function generateModule2PositionalScale(allStringsOpenNotes, scaleNotes, startFr
 
 // MODULE 3: Diatonic Melodic Patterns (Musical Application)
 // Generate non-linear melodic sequences using scale notes
-function generateModule3MelodicPattern(stringOpenNote, scaleNotes) {
+function generateModule3MelodicPattern(stringOpenNote, scaleNotes, measureIndex = 0) {
     const availableNotes = [];
     const stringNormalized = normalizeNote(stringOpenNote);
     const stringIndex = CHROMATIC.indexOf(stringNormalized);
@@ -184,11 +188,14 @@ function generateModule3MelodicPattern(stringOpenNote, scaleNotes) {
         return blankMeasure();
     }
     
+    // Vary the starting offset based on measure index
+    const offset = measureIndex % availableNotes.length;
+    
     // Create a melodic sequence with skips and returns
     const pattern = [];
     for (let i = 0; i < 4; i++) {
-        const idx = i % availableNotes.length;
-        const nextIdx = (i + 2) % availableNotes.length;
+        const idx = (i + offset) % availableNotes.length;
+        const nextIdx = (i + offset + 2) % availableNotes.length;
         pattern.push(
             availableNotes[idx].toString(),
             '-',
@@ -202,34 +209,34 @@ function generateModule3MelodicPattern(stringOpenNote, scaleNotes) {
 
 // MODULE 4: Harmonic Context (Chord Arpeggios)
 // Generate arpeggio patterns using chord tones (C, E, G for C major)
-function generateModule4ChordArpeggio(stringOpenNote, chordTones = ['C', 'E', 'G']) {
+function generateModule4ChordArpeggio(stringOpenNote, chordTones = ['C', 'E', 'G'], measureIndex = 0) {
     const availableChordTones = [];
     
-    // Find chord tones on this string
+    // Find chord tones on this string with multiple positions
     for (const tone of chordTones) {
         const positions = findNoteOnString(tone, stringOpenNote, 12);
-        if (positions.length > 0) {
+        positions.forEach(pos => {
             availableChordTones.push({
                 note: tone,
-                fret: positions[0] // Use first (lowest) position
+                fret: pos
             });
-        }
+        });
     }
     
     if (availableChordTones.length === 0) {
         return blankMeasure();
     }
     
-    // Create ascending/descending arpeggio pattern
+    // Alternate between ascending and descending based on measure
+    const ascending = measureIndex % 2 === 0;
+    
+    // Create arpeggio pattern
     const pattern = [];
-    availableChordTones.forEach(ct => {
+    const tones = ascending ? availableChordTones : [...availableChordTones].reverse();
+    
+    tones.forEach(ct => {
         pattern.push(ct.fret.toString(), '-');
     });
-    
-    // Descend
-    for (let i = availableChordTones.length - 1; i >= 0; i--) {
-        pattern.push(availableChordTones[i].fret.toString(), '-');
-    }
     
     // Fill remaining beats
     while (pattern.length < 16) {
@@ -241,7 +248,7 @@ function generateModule4ChordArpeggio(stringOpenNote, chordTones = ['C', 'E', 'G
 
 // MODULE 5: Multi-Octave Scale Traversal (Fretboard Unification)
 // Generate full-range scale runs across the neck
-function generateModule5Traversal(stringOpenNote, scaleNotes) {
+function generateModule5Traversal(stringOpenNote, scaleNotes, measureIndex = 0) {
     const availableNotes = [];
     const stringNormalized = normalizeNote(stringOpenNote);
     const stringIndex = CHROMATIC.indexOf(stringNormalized);
@@ -259,9 +266,21 @@ function generateModule5Traversal(stringOpenNote, scaleNotes) {
         return blankMeasure();
     }
     
-    // Create ascending run
+    // Use local measure index (0-3 for M27-M30) to cycle through distinct slices
+    const localMeasure = measureIndex >= 26 ? (measureIndex - 26) : measureIndex;
+    
+    // Choose different slice of notes based on local measure to create variety
+    const sliceSize = Math.min(6, availableNotes.length);
+    const maxStartIdx = Math.max(1, availableNotes.length - sliceSize + 1);
+    const startIdx = localMeasure % maxStartIdx;
+    const notesSlice = availableNotes.slice(startIdx, startIdx + sliceSize);
+    
+    // Alternate between ascending and descending
+    const ascending = localMeasure % 2 === 0;
     const pattern = [];
-    availableNotes.forEach(fret => {
+    
+    const sequence = ascending ? notesSlice : [...notesSlice].reverse();
+    sequence.forEach(fret => {
         pattern.push(fret.toString());
     });
     
@@ -275,7 +294,7 @@ function generateModule5Traversal(stringOpenNote, scaleNotes) {
 
 // MODULE 6: Capstone Virtuosity (Advanced Runs)
 // Generate rapid position-shifting melodic runs
-function generateModule6Virtuoso(stringOpenNote, scaleNotes) {
+function generateModule6Virtuoso(stringOpenNote, scaleNotes, measureIndex = 0) {
     const availableNotes = [];
     const stringNormalized = normalizeNote(stringOpenNote);
     const stringIndex = CHROMATIC.indexOf(stringNormalized);
@@ -293,12 +312,27 @@ function generateModule6Virtuoso(stringOpenNote, scaleNotes) {
         return blankMeasure();
     }
     
-    // Create rapid position shifts with rhythmic variation
+    // Vary pattern type based on measure index
+    const patternType = measureIndex % 3;
     const pattern = [];
-    for (let i = 0; i < availableNotes.length && pattern.length < 14; i++) {
-        pattern.push(availableNotes[i].toString());
-        if (i % 2 === 0) {
-            pattern.push('-');
+    
+    if (patternType === 0) {
+        // Ascending with rhythmic gaps
+        for (let i = 0; i < availableNotes.length && pattern.length < 14; i++) {
+            pattern.push(availableNotes[i].toString());
+            if (i % 2 === 0) {
+                pattern.push('-');
+            }
+        }
+    } else if (patternType === 1) {
+        // Descending rapid run
+        for (let i = availableNotes.length - 1; i >= 0 && pattern.length < 14; i--) {
+            pattern.push(availableNotes[i].toString());
+        }
+    } else {
+        // Skip pattern (every other note)
+        for (let i = 0; i < availableNotes.length && pattern.length < 14; i += 2) {
+            pattern.push(availableNotes[i].toString(), '-');
         }
     }
     
@@ -356,7 +390,7 @@ export function generatePedagogicalTab(instrumentTuning, rootNote, scaleInterval
             }
             // MODULE 3: M11-M16 (Melodic Patterns)
             else if (m < 16) {
-                pattern = generateModule3MelodicPattern(stringOpenNote, scaleNotes);
+                pattern = generateModule3MelodicPattern(stringOpenNote, scaleNotes, m);
             }
             // MODULE 4: M17-M26 (Harmonic Context - using scale's I chord tones)
             else if (m < 26) {
@@ -366,15 +400,15 @@ export function generatePedagogicalTab(instrumentTuning, rootNote, scaleInterval
                     scaleNotes[2], // Third
                     scaleNotes[4]  // Fifth
                 ];
-                pattern = generateModule4ChordArpeggio(stringOpenNote, chordTones);
+                pattern = generateModule4ChordArpeggio(stringOpenNote, chordTones, m);
             }
             // MODULE 5: M27-M30 (Multi-Octave Traversal - ALL strings participate)
             else if (m < 30) {
-                pattern = generateModule5Traversal(stringOpenNote, scaleNotes);
+                pattern = generateModule5Traversal(stringOpenNote, scaleNotes, m);
             }
             // MODULE 6: M31-M32 (Capstone Virtuosity - ALL strings participate)
             else {
-                pattern = generateModule6Virtuoso(stringOpenNote, scaleNotes);
+                pattern = generateModule6Virtuoso(stringOpenNote, scaleNotes, m);
             }
             
             measures.push(...pattern);
