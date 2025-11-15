@@ -1962,6 +1962,41 @@ function renderAllPhasesForInstrument(instrumentKey) {
     renderManuscriptPhase('complete-tab-display', 0, 512, instrumentKey);
 }
 
+// Helper function to detect extreme finger stretches in a beat
+function detectFingerStretch(strings, beat, manuscriptData, maxComfortableStretch = 5) {
+    const activeFrets = [];
+    
+    // Collect all active (non-rest) fret numbers for this beat
+    strings.forEach(stringName => {
+        const fret = manuscriptData[stringName]?.[beat];
+        if (fret !== undefined && fret !== '' && fret !== '-') {
+            const fretNum = parseInt(fret, 10);
+            if (!isNaN(fretNum) && fretNum >= 0) {
+                activeFrets.push(fretNum);
+            }
+        }
+    });
+    
+    // If we have 2 or more notes playing simultaneously
+    if (activeFrets.length >= 2) {
+        const minFret = Math.min(...activeFrets);
+        const maxFret = Math.max(...activeFrets);
+        const stretch = maxFret - minFret;
+        
+        // Return stretch info if it exceeds comfortable range
+        if (stretch > maxComfortableStretch) {
+            return {
+                hasStretch: true,
+                stretch: stretch,
+                minFret: minFret,
+                maxFret: maxFret
+            };
+        }
+    }
+    
+    return { hasStretch: false };
+}
+
 function renderManuscriptPhase(containerId, startBeat, endBeat, instrumentKey = 'guitar_6') {
     if (!manuscriptTabData) return;
     const container = document.getElementById(containerId);
@@ -2005,8 +2040,15 @@ function renderManuscriptPhase(containerId, startBeat, endBeat, instrumentKey = 
             html += '</div><div class="tab-staff">';
         }
         
+        // Detect finger stretch for this beat
+        const stretchInfo = detectFingerStretch(strings, beat, manuscriptTabData);
+        const stretchClass = stretchInfo.hasStretch ? ' tab-beat-stretch' : '';
+        const stretchTitle = stretchInfo.hasStretch 
+            ? `title="Warning: ${stretchInfo.stretch}-fret stretch (frets ${stretchInfo.minFret}-${stretchInfo.maxFret})"` 
+            : '';
+        
         // Create a vertical column for this beat showing all strings
-        html += '<div class="tab-beat-column">';
+        html += `<div class="tab-beat-column${stretchClass}" ${stretchTitle}>`;
         strings.forEach(stringName => {
             const fret = manuscriptTabData[stringName]?.[beat];
             

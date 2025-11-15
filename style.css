@@ -327,6 +327,20 @@ select, button, input[type="number"] {
     gap: 0;
 }
 
+/* Warning style for beats with extreme finger stretches */
+.tab-beat-column.tab-beat-stretch {
+    background-color: #fee;
+    border: 2px solid #e53e3e;
+    border-radius: 4px;
+    padding: 2px;
+    margin: -2px;
+}
+
+.tab-beat-column.tab-beat-stretch .tab-fret-cell {
+    background-color: #fff5f5;
+    color: #c53030;
+}
+
 /* Fret cells stack vertically */
 .tab-fret-cell {
     width: 48px;
