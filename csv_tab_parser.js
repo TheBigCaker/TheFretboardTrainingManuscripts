@@ -7,9 +7,42 @@ const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', '
 // Guitar standard tuning (the source instrument in the CSV)
 const GUITAR_TUNING = ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'];
 
+// Convert flat notes to their sharp equivalents
+function flatToSharp(note) {
+    const flatToSharpMap = {
+        'CB': 'B', 'DB': 'C#', 'EB': 'D#', 'FB': 'E',
+        'GB': 'F#', 'AB': 'G#', 'BB': 'A#'
+    };
+    
+    if (!note || typeof note !== 'string') return note;
+    
+    // Normalize symbols first
+    const cleaned = note.replace('♯', '#').replace('♭', 'b').toUpperCase();
+    
+    // Handle note with octave (e.g., "BB3" -> "A#3")
+    const matchWithOctave = cleaned.match(/^([A-G]B?)(\d+)$/);
+    if (matchWithOctave) {
+        const notePart = matchWithOctave[1];
+        const octave = matchWithOctave[2];
+        const sharp = flatToSharpMap[notePart];
+        return sharp ? `${sharp}${octave}` : cleaned;
+    }
+    
+    // Handle note without octave (e.g., "BB" -> "A#")
+    const matchNoOctave = cleaned.match(/^([A-G]B?)$/);
+    if (matchNoOctave) {
+        const notePart = matchNoOctave[1];
+        const sharp = flatToSharpMap[notePart];
+        return sharp || cleaned;
+    }
+    
+    return cleaned;
+}
+
 // Helper: Normalize note names
 function normalizeNote(note) {
-    return note.replace('♯', '#').replace('♭', 'b').toUpperCase();
+    if (!note || typeof note !== 'string') return '';
+    return flatToSharp(note);
 }
 
 // Helper: Parse note name to get pitch class and octave
@@ -56,6 +89,7 @@ function parseCSVToNoteSequence(csvText) {
     const noteSequence = [];
     
     let currentBeat = 1;
+    let firstParse = true;
     
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -80,6 +114,7 @@ function parseCSVToNoteSequence(csvText) {
                     });
                 }
             }
+            
             
             // Process this measure's beats
             if (stringRows.length > 0) {
@@ -138,10 +173,27 @@ function transposeNoteSequence(noteSequence, fromKey, toKey) {
     });
 }
 
+// Helper: Extract note name from tuning entry (handles both strings and objects)
+function extractNoteName(tuningEntry) {
+    if (typeof tuningEntry === 'string') {
+        return tuningEntry;
+    } else if (tuningEntry && tuningEntry.open_note) {
+        return tuningEntry.open_note;
+    } else if (tuningEntry && tuningEntry.label !== undefined && tuningEntry.octave !== undefined) {
+        // Construct note name from label + octave (normalization happens later in noteToMidi)
+        return `${tuningEntry.label}${tuningEntry.octave}`;
+    }
+    return null;
+}
+
 // Find a note on a specific instrument string
 function findNoteOnString(targetNoteName, stringOpenNote, maxFret = 24) {
+    // Extract note name if tuningEntry is an object
+    const stringNote = extractNoteName(stringOpenNote);
+    if (!stringNote) return null;
+    
     const targetMidi = noteToMidi(targetNoteName);
-    const stringMidi = noteToMidi(stringOpenNote);
+    const stringMidi = noteToMidi(stringNote);
     
     if (targetMidi === null || stringMidi === null) return null;
     
@@ -217,27 +269,36 @@ function octaveShiftNoteSequence(noteSequence, octaveShift) {
     });
 }
 
+// Convert tuning entry to renderer format using label + octave
+function toRendererFormat(tuningEntry) {
+    if (typeof tuningEntry === 'string') {
+        return tuningEntry;
+    } else if (tuningEntry && tuningEntry.label !== undefined && tuningEntry.octave !== undefined) {
+        return `${tuningEntry.label}${tuningEntry.octave}`;
+    } else if (tuningEntry && tuningEntry.open_note) {
+        return tuningEntry.open_note;
+    }
+    return null;
+}
+
 // Convert mapped sequence to tablature format
 function convertToTablatureFormat(mappedSequence, instrumentTuning, totalBeats = 512) {
     const numStrings = instrumentTuning.length;
     const tablature = {};
     
-    // Initialize all strings with empty measures
+    // Initialize all strings with flat array (512 beats total)
     for (let i = 0; i < numStrings; i++) {
-        tablature[instrumentTuning[i]] = [];
-        for (let m = 0; m < 32; m++) {
-            tablature[instrumentTuning[i]].push(Array(16).fill('-'));
-        }
+        const stringName = toRendererFormat(instrumentTuning[i]) || `string_${i}`;
+        tablature[stringName] = new Array(totalBeats).fill('-');
     }
     
-    // Place notes in tablature
+    // Place notes in tablature (beat is 1-indexed, but array is 0-indexed)
     for (const item of mappedSequence) {
-        const measureIndex = Math.floor((item.beat - 1) / 16);
-        const beatInMeasure = (item.beat - 1) % 16;
+        const beatIndex = item.beat - 1;
         
-        if (measureIndex < 32 && beatInMeasure < 16) {
-            const stringName = instrumentTuning[item.stringIndex];
-            tablature[stringName][measureIndex][beatInMeasure] = item.fret.toString();
+        if (beatIndex >= 0 && beatIndex < totalBeats) {
+            const stringName = toRendererFormat(instrumentTuning[item.stringIndex]) || `string_${item.stringIndex}`;
+            tablature[stringName][beatIndex] = item.fret.toString();
         }
     }
     
