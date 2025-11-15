@@ -258,10 +258,258 @@ const C_MAJOR_BASE_NOTE_MAP = {
 
 const C_MAJOR_ROOT_INDEX = 0; // C = 0
 
+// --- TABLATURE GENERATOR SYSTEM ---
+// Generates comprehensive 512-beat pedagogical tablature for any instrument
 
-// --- RE-COMPOSED: 4-STRING BASS CONSTANTS (EADG) ---
+function generateBlankMeasure() {
+    return Array(16).fill('-');
+}
 
-const C_MAJOR_BASS_8_MEASURE_LOOP = {
+function generateDronePattern(type = 'quarter') {
+    if (type === 'quarter') {
+        const pattern = [];
+        for (let i = 0; i < 16; i += 4) {
+            pattern.push('0', '-', '-', '-');
+        }
+        return pattern;
+    }
+    return Array(16).fill('0');
+}
+
+function getScaleFretsForString(openNote, targetScale = 'C major') {
+    const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const flatToSharp = {
+        'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
+        'D♭': 'C#', 'E♭': 'D#', 'G♭': 'F#', 'A♭': 'G#', 'B♭': 'A#'
+    };
+    const cMajorIntervals = [0, 2, 4, 5, 7, 9, 11];
+    
+    let openNoteBase = openNote.replace(/[0-9]/g, '').replace('♯', '#');
+    if (flatToSharp[openNoteBase]) {
+        openNoteBase = flatToSharp[openNoteBase];
+    }
+    
+    const openIdx = chromatic.indexOf(openNoteBase);
+    if (openIdx === -1) return [];
+    
+    const scaleFrets = [];
+    for (let fret = 0; fret <= 12; fret++) {
+        const noteIdx = (openIdx + fret) % 12;
+        if (cMajorIntervals.includes(noteIdx)) {
+            scaleFrets.push(fret);
+        }
+    }
+    
+    return scaleFrets;
+}
+
+function generateStringIsolationPattern(openNote) {
+    const scaleFrets = getScaleFretsForString(openNote);
+    if (scaleFrets.length < 4) {
+        return Array(16).fill('-');
+    }
+    
+    const frets = scaleFrets.slice(0, 4);
+    return [
+        frets[0], frets[1], frets[0], frets[2], frets[1], frets[2], frets[1], frets[0],
+        frets[2], frets[0], frets[1], frets[0], frets[2], frets[0], frets[2], frets[1]
+    ].map(f => f.toString());
+}
+
+function generatePositionDrill(openNote, position = 'low') {
+    const scaleFrets = getScaleFretsForString(openNote);
+    if (scaleFrets.length < 4) {
+        return Array(16).fill('-');
+    }
+    
+    const offset = position === 'mid' ? Math.min(2, scaleFrets.length - 4) : 0;
+    const frets = scaleFrets.slice(offset, offset + 4);
+    
+    return [
+        frets[0], frets[1], frets[0], frets[2], frets[1], frets[2], frets[1], frets[0],
+        frets[2], frets[0], frets[1], frets[0], frets[2], frets[0], frets[2], frets[1]
+    ].map(f => f.toString());
+}
+
+function generateScaleRun(openNote, ascending = true, range = 'full') {
+    const scaleFrets = getScaleFretsForString(openNote);
+    if (scaleFrets.length < 4) {
+        return Array(16).fill('-');
+    }
+    
+    const frets = ascending ? scaleFrets : [...scaleFrets].reverse();
+    const notes = [];
+    
+    for (let i = 0; i < Math.min(frets.length, 8); i++) {
+        notes.push(frets[i].toString());
+    }
+    
+    while (notes.length < 16) {
+        notes.push('-');
+    }
+    return notes;
+}
+
+function generateArpeggioPattern(openNote, chordType = 'major') {
+    const scaleFrets = getScaleFretsForString(openNote);
+    if (scaleFrets.length < 3) {
+        return Array(16).fill('-');
+    }
+    
+    const intervals = chordType === 'major' ? [0, 2, 4] : [0, 2, 3];
+    const chordFrets = intervals.map(i => scaleFrets[Math.min(i, scaleFrets.length - 1)]);
+    const pattern = [];
+    
+    for (let i = 0; i < 16; i += 4) {
+        pattern.push(chordFrets[i % 3], '-', '-', '-');
+    }
+    return pattern.map(f => f === '-' ? '-' : f.toString());
+}
+
+function generateWalkingBassPattern(openNote) {
+    const scaleFrets = getScaleFretsForString(openNote);
+    if (scaleFrets.length < 5) {
+        return Array(16).fill('-');
+    }
+    
+    const walk = [
+        scaleFrets[0], scaleFrets[1], scaleFrets[2], scaleFrets[3],
+        scaleFrets[4], scaleFrets[3], scaleFrets[2], scaleFrets[1]
+    ];
+    return [...walk, ...walk].map(f => f.toString());
+}
+
+function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
+    const tuning = TUNINGS[instrumentKey];
+    if (!tuning) {
+        console.error(`Unknown instrument: ${instrumentKey}`);
+        return null;
+    }
+    
+    const strings = tuning.tuning.map(s => s.open_note).reverse();
+    const numStrings = strings.length;
+    const tab = {};
+    const noteMap = {};
+    
+    const {
+        useWalkingBass = instrumentKey.includes('bass'),
+        usePairedStrings = instrumentKey === 'mandolin',
+        useDroneString = instrumentKey === 'banjo'
+    } = config;
+    
+    strings.forEach((stringNote, idx) => {
+        const stringIdx = numStrings - 1 - idx;
+        const measures = [];
+        
+        const isDroneString = useDroneString && stringIdx === 0 && numStrings === 5;
+        
+        if (isDroneString) {
+            for (let m = 0; m < 32; m++) {
+                if (m % 4 === 0) {
+                    measures.push(...generateDronePattern('quarter'));
+                } else {
+                    measures.push(...generateBlankMeasure());
+                }
+            }
+        } else {
+            // Phase 1: String Isolation (M1-6, each string gets 1-2 measures)
+            const isolationMeasure = Math.floor(stringIdx * (6 / numStrings));
+            for (let m = 0; m < 6; m++) {
+                if (m === isolationMeasure || m === isolationMeasure + 1) {
+                    measures.push(...generateStringIsolationPattern(stringNote));
+                } else {
+                    measures.push(...generateBlankMeasure());
+                }
+            }
+            
+            // Phase 2: Position Drills (M7-12)
+            for (let m = 6; m < 12; m++) {
+                if (m === 6 + stringIdx || m === 7 + stringIdx) {
+                    measures.push(...generatePositionDrill(stringNote, m % 2 === 0 ? 'low' : 'mid'));
+                } else {
+                    measures.push(...generateBlankMeasure());
+                }
+            }
+            
+            // Phase 3: Scale Runs (M13-15)
+            if (stringIdx < 2) {
+                measures.push(...generateScaleRun(stringNote, true));
+                measures.push(...generateBlankMeasure());
+                measures.push(...generateScaleRun(stringNote, false));
+            } else {
+                for (let m = 12; m < 15; m++) {
+                    measures.push(...generateBlankMeasure());
+                }
+            }
+            
+            // Phase 4: Arpeggios (M16-24)
+            for (let m = 15; m < 24; m++) {
+                if ((m - 15) % 3 === stringIdx % 3) {
+                    if (useWalkingBass && stringIdx <= 1) {
+                        measures.push(...generateWalkingBassPattern(stringNote));
+                    } else {
+                        measures.push(...generateArpeggioPattern(stringNote, m % 2 === 0 ? 'major' : 'minor'));
+                    }
+                } else {
+                    measures.push(...generateBlankMeasure());
+                }
+            }
+            
+            // Phase 5: Advanced Patterns (M25-32)
+            for (let m = 24; m < 28; m++) {
+                if (stringIdx % 2 === 0) {
+                    measures.push(...generateScaleRun(stringNote, m % 2 === 0));
+                } else {
+                    measures.push(...generateBlankMeasure());
+                }
+            }
+            
+            for (let m = 28; m < 32; m++) {
+                if (stringIdx % 2 === 1) {
+                    measures.push(...generatePositionDrill(stringNote, 'mid'));
+                } else {
+                    measures.push(...generateBlankMeasure());
+                }
+            }
+        }
+        
+        tab[stringNote] = measures;
+        
+        noteMap[stringNote] = {};
+        for (let fret = 0; fret <= 12; fret++) {
+            const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const openNoteBase = stringNote.replace(/[0-9]/g, '');
+            const openOctave = parseInt(stringNote.match(/[0-9]/)?.[0] || '2');
+            const openIdx = chromatic.indexOf(openNoteBase.replace('♯', '#').replace('♭', 'b'));
+            
+            if (openIdx >= 0) {
+                const noteIdx = (openIdx + fret) % 12;
+                const octaveOffset = Math.floor((openIdx + fret) / 12);
+                const noteName = chromatic[noteIdx];
+                const cMajorScale = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+                
+                if (cMajorScale.includes(noteName)) {
+                    noteMap[stringNote][fret.toString()] = cMajorScale.indexOf(noteName) + ((openOctave + octaveOffset - 2) * 7);
+                }
+            }
+        }
+    });
+    
+    return { tab, noteMap };
+}
+
+// --- END TABLATURE GENERATOR SYSTEM ---
+
+
+// --- AUTO-GENERATED: 4-STRING BASS CONSTANTS (EADG) ---
+const bassGenerated = generateComprehensiveTabForInstrument('bass_4', { useWalkingBass: true });
+const C_MAJOR_BASS_TAB = bassGenerated.tab;
+const C_MAJOR_BASS_NOTE_MAP = bassGenerated.noteMap;
+// --- END 4-STRING BASS CONSTANTS ---
+
+
+// --- LEGACY BASS (REPLACED BY GENERATOR) ---
+const C_MAJOR_BASS_8_MEASURE_LOOP_OLD = {
     'G3': [
         // C Major Scale (Pos 1) (M1-2) - 8th notes
         '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M1
@@ -319,33 +567,31 @@ const C_MAJOR_BASS_8_MEASURE_LOOP = {
         '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
     ],
 };
-// Repeat the 8-measure loop to create the full 32-measure (512-beat) exercise
-const C_MAJOR_BASS_TAB = {
+// (Old 8-measure loop code removed - now using comprehensive generator)
+/*
+const C_MAJOR_BASS_TAB_OLD = {
     'G3': [
-        ...C_MAJOR_BASS_8_MEASURE_LOOP['G3'], ...C_MAJOR_BASS_8_MEASURE_LOOP['G3'],
-        ...C_MAJOR_BASS_8_MEASURE_LOOP['G3'], ...C_MAJOR_BASS_8_MEASURE_LOOP['G3']
+        ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['G3'], ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['G3'],
+        ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['G3'], ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['G3']
     ],
     'D3': [
-        ...C_MAJOR_BASS_8_MEASURE_LOOP['D3'], ...C_MAJOR_BASS_8_MEASURE_LOOP['D3'],
-        ...C_MAJOR_BASS_8_MEASURE_LOOP['D3'], ...C_MAJOR_BASS_8_MEASURE_LOOP['D3']
+        ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['D3'], ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['D3'],
+        ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['D3'], ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['D3']
     ],
     'A2': [
-        ...C_MAJOR_BASS_8_MEASURE_LOOP['A2'], ...C_MAJOR_BASS_8_MEASURE_LOOP['A2'],
-        ...C_MAJOR_BASS_8_MEASURE_LOOP['A2'], ...C_MAJOR_BASS_8_MEASURE_LOOP['A2']
+        ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['A2'], ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['A2'],
+        ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['A2'], ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['A2']
     ],
     'E2': [
-        ...C_MAJOR_BASS_8_MEASURE_LOOP['E2'], ...C_MAJOR_BASS_8_MEASURE_LOOP['E2'],
-        ...C_MAJOR_BASS_8_MEASURE_LOOP['E2'], ...C_MAJOR_BASS_8_MEASURE_LOOP['E2']
+        ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['E2'], ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['E2'],
+        ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['E2'], ...C_MAJOR_BASS_8_MEASURE_LOOP_OLD['E2']
     ]
 };
-// --- UPDATED: Note map for new playable bass �tude ---
-const C_MAJOR_BASS_NOTE_MAP = {
-    'G3': { '0': 7, '2': 9, '4': 11, '5': 12 },
-    'D3': { '0': 2, '2': 4, '3': 5, '5': 7 },
-    'A2': { '3': 12, '5': 14 },
-    'E2': { '0': 4, '1': 5, '3': 7 }
-};
-// --- END 4-STRING BASS CONSTANTS ---
+*/
+// (Old bass note map also removed - now generated above)
+
+
+// --- END LEGACY BASS DATA ---
 
 
 // --- RE-COMPOSED: MANDOLIN CONSTANTS (GDAE) ---
