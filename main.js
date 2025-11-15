@@ -276,7 +276,7 @@ function generateDronePattern(type = 'quarter') {
     return Array(16).fill('0');
 }
 
-function getScaleFretsForString(openNote, targetScale = 'C major') {
+function getScaleFretsForString(openNote, targetScale = 'C major', maxFret = 24) {
     const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const flatToSharp = {
         'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
@@ -290,14 +290,25 @@ function getScaleFretsForString(openNote, targetScale = 'C major') {
     }
     
     const openIdx = chromatic.indexOf(openNoteBase);
-    if (openIdx === -1) return [];
+    if (openIdx === -1) return [0, 2, 3, 5, 7, 9, 10, 12];
     
     const scaleFrets = [];
-    for (let fret = 0; fret <= 12; fret++) {
+    for (let fret = 0; fret <= maxFret; fret++) {
         const noteIdx = (openIdx + fret) % 12;
         if (cMajorIntervals.includes(noteIdx)) {
             scaleFrets.push(fret);
         }
+    }
+    
+    // Guarantee minimum frets - if still less than 5, add chromatic fills
+    if (scaleFrets.length < 5) {
+        for (let fret = 0; fret <= 12; fret++) {
+            if (!scaleFrets.includes(fret)) {
+                scaleFrets.push(fret);
+            }
+            if (scaleFrets.length >= 8) break;
+        }
+        scaleFrets.sort((a, b) => a - b);
     }
     
     return scaleFrets;
@@ -305,11 +316,14 @@ function getScaleFretsForString(openNote, targetScale = 'C major') {
 
 function generateStringIsolationPattern(openNote) {
     const scaleFrets = getScaleFretsForString(openNote);
-    if (scaleFrets.length < 4) {
-        return Array(16).fill('-');
-    }
+    // Guarantee at least 4 frets by cycling through available ones
+    const frets = [
+        scaleFrets[0] || 0,
+        scaleFrets[1] || 2,
+        scaleFrets[2] || 3,
+        scaleFrets[3] || 5
+    ];
     
-    const frets = scaleFrets.slice(0, 4);
     return [
         frets[0], frets[1], frets[0], frets[2], frets[1], frets[2], frets[1], frets[0],
         frets[2], frets[0], frets[1], frets[0], frets[2], frets[0], frets[2], frets[1]
@@ -318,12 +332,15 @@ function generateStringIsolationPattern(openNote) {
 
 function generatePositionDrill(openNote, position = 'low') {
     const scaleFrets = getScaleFretsForString(openNote);
-    if (scaleFrets.length < 4) {
-        return Array(16).fill('-');
-    }
+    const offset = position === 'mid' ? Math.min(2, Math.max(0, scaleFrets.length - 4)) :
+                   position === 'high' ? Math.min(4, Math.max(0, scaleFrets.length - 4)) : 0;
     
-    const offset = position === 'mid' ? Math.min(2, scaleFrets.length - 4) : 0;
-    const frets = scaleFrets.slice(offset, offset + 4);
+    const frets = [
+        scaleFrets[offset] || 0,
+        scaleFrets[offset + 1] || 2,
+        scaleFrets[offset + 2] || 3,
+        scaleFrets[offset + 3] || 5
+    ];
     
     return [
         frets[0], frets[1], frets[0], frets[2], frets[1], frets[2], frets[1], frets[0],
@@ -331,33 +348,23 @@ function generatePositionDrill(openNote, position = 'low') {
     ].map(f => f.toString());
 }
 
-function generateScaleRun(openNote, ascending = true, range = 'full') {
+function generateScaleRun(openNote, ascending = true) {
     const scaleFrets = getScaleFretsForString(openNote);
-    if (scaleFrets.length < 4) {
-        return Array(16).fill('-');
-    }
-    
     const frets = ascending ? scaleFrets : [...scaleFrets].reverse();
     const notes = [];
     
-    for (let i = 0; i < Math.min(frets.length, 8); i++) {
-        notes.push(frets[i].toString());
+    // Fill all 16 beats with scale notes, cycling if needed
+    for (let i = 0; i < 16; i++) {
+        notes.push((frets[i % frets.length] || 0).toString());
     }
     
-    while (notes.length < 16) {
-        notes.push('-');
-    }
     return notes;
 }
 
 function generateArpeggioPattern(openNote, chordType = 'major') {
     const scaleFrets = getScaleFretsForString(openNote);
-    if (scaleFrets.length < 3) {
-        return Array(16).fill('-');
-    }
-    
     const intervals = chordType === 'major' ? [0, 2, 4] : [0, 2, 3];
-    const chordFrets = intervals.map(i => scaleFrets[Math.min(i, scaleFrets.length - 1)]);
+    const chordFrets = intervals.map(i => scaleFrets[Math.min(i, scaleFrets.length - 1)] || 0);
     const pattern = [];
     
     for (let i = 0; i < 16; i += 4) {
@@ -368,13 +375,15 @@ function generateArpeggioPattern(openNote, chordType = 'major') {
 
 function generateWalkingBassPattern(openNote) {
     const scaleFrets = getScaleFretsForString(openNote);
-    if (scaleFrets.length < 5) {
-        return Array(16).fill('-');
-    }
-    
     const walk = [
-        scaleFrets[0], scaleFrets[1], scaleFrets[2], scaleFrets[3],
-        scaleFrets[4], scaleFrets[3], scaleFrets[2], scaleFrets[1]
+        scaleFrets[0] || 0,
+        scaleFrets[1] || 2,
+        scaleFrets[2] || 3,
+        scaleFrets[3] || 5,
+        scaleFrets[4] || 7,
+        scaleFrets[3] || 5,
+        scaleFrets[2] || 3,
+        scaleFrets[1] || 2
     ];
     return [...walk, ...walk].map(f => f.toString());
 }
@@ -414,62 +423,31 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
                 }
             }
         } else {
-            // Phase 1: String Isolation (M1-6, each string gets 1-2 measures)
-            const isolationMeasure = Math.floor(stringIdx * (6 / numStrings));
-            for (let m = 0; m < 6; m++) {
-                if (m === isolationMeasure || m === isolationMeasure + 1) {
+            // Generate dense content for all strings - minimize blanks
+            for (let m = 0; m < 32; m++) {
+                // Determine pattern for this measure based on position
+                if (m < 6) {
+                    // M1-6: All strings get isolation patterns
                     measures.push(...generateStringIsolationPattern(stringOpenNote));
-                } else {
-                    measures.push(...generateBlankMeasure());
-                }
-            }
-            
-            // Phase 2: Position Drills (M7-12)
-            for (let m = 6; m < 12; m++) {
-                if (m === 6 + stringIdx || m === 7 + stringIdx) {
+                } else if (m < 12) {
+                    // M7-12: All strings get position drills
                     measures.push(...generatePositionDrill(stringOpenNote, m % 2 === 0 ? 'low' : 'mid'));
-                } else {
-                    measures.push(...generateBlankMeasure());
-                }
-            }
-            
-            // Phase 3: Scale Runs (M13-15)
-            if (stringIdx < 2) {
-                measures.push(...generateScaleRun(stringOpenNote, true));
-                measures.push(...generateBlankMeasure());
-                measures.push(...generateScaleRun(stringOpenNote, false));
-            } else {
-                for (let m = 12; m < 15; m++) {
-                    measures.push(...generateBlankMeasure());
-                }
-            }
-            
-            // Phase 4: Arpeggios & Walking Bass (M16-24)
-            for (let m = 15; m < 24; m++) {
-                // Bass low strings get comprehensive walking patterns
-                if (useWalkingBass && stringIdx <= 1) {
-                    measures.push(...generateWalkingBassPattern(stringOpenNote));
-                } else if ((m - 15) % 3 === stringIdx % 3) {
-                    measures.push(...generateArpeggioPattern(stringOpenNote, m % 2 === 0 ? 'major' : 'minor'));
-                } else {
-                    measures.push(...generateBlankMeasure());
-                }
-            }
-            
-            // Phase 5: Advanced Patterns (M25-32)
-            for (let m = 24; m < 28; m++) {
-                if (stringIdx % 2 === 0) {
+                } else if (m < 16) {
+                    // M13-16: All strings get scale runs
                     measures.push(...generateScaleRun(stringOpenNote, m % 2 === 0));
+                } else if (m < 24) {
+                    // M17-24: Walking bass for bass low strings, arpeggios for others
+                    if (useWalkingBass && stringIdx <= 1) {
+                        measures.push(...generateWalkingBassPattern(stringOpenNote));
+                    } else {
+                        measures.push(...generateArpeggioPattern(stringOpenNote, m % 2 === 0 ? 'major' : 'minor'));
+                    }
+                } else if (m < 28) {
+                    // M25-28: All strings get scale runs
+                    measures.push(...generateScaleRun(stringOpenNote, m % 2 === 1));
                 } else {
-                    measures.push(...generateBlankMeasure());
-                }
-            }
-            
-            for (let m = 28; m < 32; m++) {
-                if (stringIdx % 2 === 1) {
-                    measures.push(...generatePositionDrill(stringOpenNote, 'mid'));
-                } else {
-                    measures.push(...generateBlankMeasure());
+                    // M29-32: All strings get position drills
+                    measures.push(...generatePositionDrill(stringOpenNote, 'high'));
                 }
             }
         }
