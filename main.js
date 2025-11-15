@@ -386,7 +386,8 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
         return null;
     }
     
-    const strings = tuning.tuning.map(s => s.open_note).reverse();
+    const strings = tuning.tuning.map(s => `${s.label}${s.octave}`).reverse();
+    const stringOpenNotes = tuning.tuning.map(s => s.open_note).reverse();
     const numStrings = strings.length;
     const tab = {};
     const noteMap = {};
@@ -397,7 +398,8 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
         useDroneString = instrumentKey === 'banjo'
     } = config;
     
-    strings.forEach((stringNote, idx) => {
+    strings.forEach((stringKey, idx) => {
+        const stringOpenNote = stringOpenNotes[idx];
         const stringIdx = numStrings - 1 - idx;
         const measures = [];
         
@@ -416,7 +418,7 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
             const isolationMeasure = Math.floor(stringIdx * (6 / numStrings));
             for (let m = 0; m < 6; m++) {
                 if (m === isolationMeasure || m === isolationMeasure + 1) {
-                    measures.push(...generateStringIsolationPattern(stringNote));
+                    measures.push(...generateStringIsolationPattern(stringOpenNote));
                 } else {
                     measures.push(...generateBlankMeasure());
                 }
@@ -425,7 +427,7 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
             // Phase 2: Position Drills (M7-12)
             for (let m = 6; m < 12; m++) {
                 if (m === 6 + stringIdx || m === 7 + stringIdx) {
-                    measures.push(...generatePositionDrill(stringNote, m % 2 === 0 ? 'low' : 'mid'));
+                    measures.push(...generatePositionDrill(stringOpenNote, m % 2 === 0 ? 'low' : 'mid'));
                 } else {
                     measures.push(...generateBlankMeasure());
                 }
@@ -433,9 +435,9 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
             
             // Phase 3: Scale Runs (M13-15)
             if (stringIdx < 2) {
-                measures.push(...generateScaleRun(stringNote, true));
+                measures.push(...generateScaleRun(stringOpenNote, true));
                 measures.push(...generateBlankMeasure());
-                measures.push(...generateScaleRun(stringNote, false));
+                measures.push(...generateScaleRun(stringOpenNote, false));
             } else {
                 for (let m = 12; m < 15; m++) {
                     measures.push(...generateBlankMeasure());
@@ -446,9 +448,9 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
             for (let m = 15; m < 24; m++) {
                 // Bass low strings get comprehensive walking patterns
                 if (useWalkingBass && stringIdx <= 1) {
-                    measures.push(...generateWalkingBassPattern(stringNote));
+                    measures.push(...generateWalkingBassPattern(stringOpenNote));
                 } else if ((m - 15) % 3 === stringIdx % 3) {
-                    measures.push(...generateArpeggioPattern(stringNote, m % 2 === 0 ? 'major' : 'minor'));
+                    measures.push(...generateArpeggioPattern(stringOpenNote, m % 2 === 0 ? 'major' : 'minor'));
                 } else {
                     measures.push(...generateBlankMeasure());
                 }
@@ -457,7 +459,7 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
             // Phase 5: Advanced Patterns (M25-32)
             for (let m = 24; m < 28; m++) {
                 if (stringIdx % 2 === 0) {
-                    measures.push(...generateScaleRun(stringNote, m % 2 === 0));
+                    measures.push(...generateScaleRun(stringOpenNote, m % 2 === 0));
                 } else {
                     measures.push(...generateBlankMeasure());
                 }
@@ -465,20 +467,20 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
             
             for (let m = 28; m < 32; m++) {
                 if (stringIdx % 2 === 1) {
-                    measures.push(...generatePositionDrill(stringNote, 'mid'));
+                    measures.push(...generatePositionDrill(stringOpenNote, 'mid'));
                 } else {
                     measures.push(...generateBlankMeasure());
                 }
             }
         }
         
-        tab[stringNote] = measures;
+        tab[stringKey] = measures;
         
-        noteMap[stringNote] = {};
+        noteMap[stringKey] = {};
         for (let fret = 0; fret <= 12; fret++) {
             const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-            const openNoteBase = stringNote.replace(/[0-9]/g, '');
-            const openOctave = parseInt(stringNote.match(/[0-9]/)?.[0] || '2');
+            const openNoteBase = stringOpenNote.replace(/[0-9]/g, '');
+            const openOctave = parseInt(stringOpenNote.match(/[0-9]/)?.[0] || '2');
             const openIdx = chromatic.indexOf(openNoteBase.replace('♯', '#').replace('♭', 'b'));
             
             if (openIdx >= 0) {
@@ -488,7 +490,7 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
                 const cMajorScale = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
                 
                 if (cMajorScale.includes(noteName)) {
-                    noteMap[stringNote][fret.toString()] = cMajorScale.indexOf(noteName) + ((openOctave + octaveOffset - 2) * 7);
+                    noteMap[stringKey][fret.toString()] = cMajorScale.indexOf(noteName) + ((openOctave + octaveOffset - 2) * 7);
                 }
             }
         }
@@ -533,6 +535,16 @@ const C_MAJOR_GUITAR_7_STRING_TAB = guitar7Generated.tab;
 const C_MAJOR_GUITAR_7_STRING_NOTE_MAP = guitar7Generated.noteMap;
 
 // --- END AUTO-GENERATED TABLATURE CONSTANTS ---
+
+// Lookup table: Map instrument keys to their C Major base tabs
+const BASE_TAB_BY_INSTRUMENT = {
+    'bass_4': { tab: C_MAJOR_BASS_TAB, noteMap: C_MAJOR_BASS_NOTE_MAP },
+    'bass_5': { tab: C_MAJOR_BASS_5_TAB, noteMap: C_MAJOR_BASS_5_NOTE_MAP },
+    'mandolin': { tab: C_MAJOR_MANDOLIN_TAB, noteMap: C_MAJOR_MANDOLIN_NOTE_MAP },
+    'banjo_5': { tab: C_MAJOR_BANJO_TAB, noteMap: C_MAJOR_BANJO_NOTE_MAP },
+    'ukulele': { tab: C_MAJOR_UKULELE_TAB, noteMap: C_MAJOR_UKULELE_NOTE_MAP },
+    'guitar_7': { tab: C_MAJOR_GUITAR_7_STRING_TAB, noteMap: C_MAJOR_GUITAR_7_STRING_NOTE_MAP }
+};
 
 
 // --- LEGACY BASS (REPLACED BY GENERATOR) ---
@@ -1735,8 +1747,6 @@ function parseCsvToTabData(csvText) {
 
 // Regenerate tablature when instrument/root/scale selections change
 function regenerateTabForCurrentSettings() {
-    if (!manuscriptTabData) return;
-    
     const rootSelect = document.getElementById('rootSelect');
     const instrumentSelect = document.getElementById('instrumentFilter');
     const modeSelect = document.getElementById('modeSelect');
@@ -1750,20 +1760,40 @@ function regenerateTabForCurrentSettings() {
     
     console.log(`Regenerating tab for: ${CHROMATIC_NOTES[selectedRootIndex].name} ${selectedMode} on ${selectedInstrument}`);
     
+    // Get base tab data for instrument
+    let baseTabData, baseNoteMap;
+    
+    // Check if instrument has pre-generated C Major tabs
+    if (BASE_TAB_BY_INSTRUMENT[selectedInstrument]) {
+        baseTabData = BASE_TAB_BY_INSTRUMENT[selectedInstrument].tab;
+        baseNoteMap = BASE_TAB_BY_INSTRUMENT[selectedInstrument].noteMap;
+    } else {
+        // Fall back to 6-string guitar CSV for guitar_6 only
+        if (!manuscriptTabData) return;
+        baseTabData = manuscriptTabData;
+    }
+    
     // Calculate transposition interval from C (index 0) to selected root
     const transpositionInterval = selectedRootIndex; // Semitones to transpose
     
-    // Transpose the tablature data and adapt to selected instrument
-    const transposedTabData = transposeTabData(manuscriptTabData, transpositionInterval, selectedInstrument);
+    let displayTabData;
     
-    // Temporarily store the transposed data
+    // If root is C, use base data directly; otherwise transpose
+    if (transpositionInterval === 0) {
+        displayTabData = baseTabData;
+    } else {
+        // Transpose from the instrument's C Major base
+        displayTabData = transposeTabData(baseTabData, transpositionInterval, selectedInstrument);
+    }
+    
+    // Temporarily store the display data
     const originalData = manuscriptTabData;
-    manuscriptTabData = transposedTabData;
+    manuscriptTabData = displayTabData;
     
     // Re-render the tablature with selected instrument
     renderAllPhasesForInstrument(selectedInstrument);
     
-    // Restore original data (keep base data unchanged)
+    // Restore original data (keep base data unchanged for guitar_6)
     manuscriptTabData = originalData;
 }
 
