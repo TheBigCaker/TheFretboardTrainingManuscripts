@@ -388,6 +388,102 @@ function generateWalkingBassPattern(openNote) {
     return [...walk, ...walk].map(f => f.toString());
 }
 
+function findBestChordFret(openNote, preferredChordTones = ['C', 'E', 'G'], skipFirst = false) {
+    // Find the best playable fret for chord tones, searching 0-24 frets
+    const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const flatToSharp = {
+        // Standard ASCII flats
+        'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
+        'db': 'C#', 'eb': 'D#', 'gb': 'F#', 'ab': 'G#', 'bb': 'A#',
+        'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#',
+        // Unicode flats (♭)
+        'D♭': 'C#', 'E♭': 'D#', 'G♭': 'F#', 'A♭': 'G#', 'B♭': 'A#',
+        'd♭': 'C#', 'e♭': 'D#', 'g♭': 'F#', 'a♭': 'G#', 'b♭': 'A#',
+        'C♭': 'B', 'c♭': 'B', 'F♭': 'E', 'f♭': 'E'
+    };
+    
+    // Normalize: remove octave numbers, handle sharps
+    let openNoteBase = openNote.replace(/[0-9]/g, '').replace('♯', '#');
+    
+    // Convert flats to sharps BEFORE uppercasing
+    if (flatToSharp[openNoteBase]) {
+        openNoteBase = flatToSharp[openNoteBase];
+    }
+    
+    // Now uppercase the result
+    openNoteBase = openNoteBase.toUpperCase();
+    
+    const openIdx = chromatic.indexOf(openNoteBase);
+    if (openIdx === -1) {
+        console.warn(`Could not parse note: ${openNote}, using first chord tone`);
+        // Fallback: return lowest chord tone index
+        for (let i = 0; i < preferredChordTones.length; i++) {
+            const chordToneIdx = chromatic.indexOf(preferredChordTones[i]);
+            if (chordToneIdx !== -1) return chordToneIdx;
+        }
+        return 0;
+    }
+    
+    // Find all frets (0-24) that produce chord tones, prefer lower frets
+    const candidateFrets = [];
+    for (let fret = 0; fret <= 24; fret++) {
+        const noteIdx = (openIdx + fret) % 12;
+        const noteName = chromatic[noteIdx];
+        if (preferredChordTones.includes(noteName)) {
+            candidateFrets.push(fret);
+        }
+    }
+    
+    // Return the lowest playable chord tone (or second-lowest if skipFirst)
+    if (candidateFrets.length === 0) return 0;
+    if (skipFirst && candidateFrets.length > 1) return candidateFrets[1];
+    return candidateFrets[0];
+}
+
+function generateChordMeasure(openNote, stringIdx, numStrings, measureNum) {
+    // Find the best chord tones for this string
+    const chordFret = findBestChordFret(openNote, ['C', 'E', 'G'], false);
+    const altFret = findBestChordFret(openNote, ['C', 'E', 'G'], true); // Get second chord tone
+    
+    const pattern = [];
+    
+    // Different chord patterns for each measure (M27-32)
+    const measureOffset = measureNum - 26; // 0-5
+    
+    // Create strumming/chord patterns similar to guitar CSV
+    if (measureOffset === 0) {
+        // M27: Whole note chord (hold) - all strings sustain
+        pattern.push(chordFret.toString(), '-', '-', '-', '-', '-', '-', '-', 
+                     '-', '-', '-', '-', '-', '-', '-', '-');
+    } else if (measureOffset === 1) {
+        // M28: Quarter note strums - all strings strum together
+        pattern.push(chordFret.toString(), '-', '-', '-', chordFret.toString(), '-', '-', '-',
+                     chordFret.toString(), '-', '-', '-', chordFret.toString(), '-', '-', '-');
+    } else if (measureOffset === 2) {
+        // M29: Mixed chord pattern - create movement with two chord tones
+        pattern.push(chordFret.toString(), '-', altFret.toString(), '-', 
+                     chordFret.toString(), '-', altFret.toString(), '-',
+                     chordFret.toString(), '-', '-', '-', altFret.toString(), '-', '-', '-');
+    } else if (measureOffset === 3) {
+        // M30: Arpeggio style - chord tones with rhythmic spacing
+        pattern.push(chordFret.toString(), '-', '-', altFret.toString(), '-', '-', 
+                     chordFret.toString(), '-', '-', altFret.toString(), '-', '-', 
+                     chordFret.toString(), '-', '-', '-');
+    } else if (measureOffset === 4) {
+        // M31: Dense chord pattern - rapid strumming
+        pattern.push(chordFret.toString(), '-', chordFret.toString(), altFret.toString(), '-', 
+                     chordFret.toString(), '-', altFret.toString(),
+                     chordFret.toString(), '-', chordFret.toString(), '-', 
+                     altFret.toString(), '-', '-', '-');
+    } else {
+        // M32: Descending finale - use chord tones throughout
+        pattern.push(chordFret.toString(), '-', '-', '-', altFret.toString(), '-', '-', '-',
+                     chordFret.toString(), '-', '-', '-', altFret.toString(), '-', '-', '-');
+    }
+    
+    return pattern;
+}
+
 function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
     const tuning = TUNINGS[instrumentKey];
     if (!tuning) {
@@ -423,11 +519,15 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
                 }
             }
         } else {
-            // Simple alternating pattern: strings rotate through all 32 measures
-            // Ensures every string gets equal coverage
+            // Generate patterns with chord section towards the end
             for (let m = 0; m < 32; m++) {
                 const activeString = m % numStrings;
-                const shouldPlay = (activeString === stringIdx);
+                let shouldPlay = (activeString === stringIdx);
+                
+                // M27-32: CHORD SECTION - all strings participate
+                if (m >= 26) {
+                    shouldPlay = true;
+                }
                 
                 // Generate appropriate pattern or silence
                 if (shouldPlay) {
@@ -442,7 +542,9 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
                             measures.push(...generateArpeggioPattern(stringOpenNote, m % 2 === 0 ? 'major' : 'minor'));
                         }
                     } else {
-                        measures.push(...generateScaleRun(stringOpenNote, m % 2 === 0));
+                        // CHORD SECTION: Generate chord voicings
+                        const chordPattern = generateChordMeasure(stringOpenNote, stringIdx, numStrings, m);
+                        measures.push(...chordPattern);
                     }
                 } else {
                     measures.push(...generateBlankMeasure());
