@@ -423,31 +423,29 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
                 }
             }
         } else {
-            // Generate dense content for all strings - minimize blanks
+            // Simple alternating pattern: strings rotate through all 32 measures
+            // Ensures every string gets equal coverage
             for (let m = 0; m < 32; m++) {
-                // Determine pattern for this measure based on position
-                if (m < 6) {
-                    // M1-6: All strings get isolation patterns
-                    measures.push(...generateStringIsolationPattern(stringOpenNote));
-                } else if (m < 12) {
-                    // M7-12: All strings get position drills
-                    measures.push(...generatePositionDrill(stringOpenNote, m % 2 === 0 ? 'low' : 'mid'));
-                } else if (m < 16) {
-                    // M13-16: All strings get scale runs
-                    measures.push(...generateScaleRun(stringOpenNote, m % 2 === 0));
-                } else if (m < 24) {
-                    // M17-24: Walking bass for bass low strings, arpeggios for others
-                    if (useWalkingBass && stringIdx <= 1) {
-                        measures.push(...generateWalkingBassPattern(stringOpenNote));
+                const activeString = m % numStrings;
+                const shouldPlay = (activeString === stringIdx);
+                
+                // Generate appropriate pattern or silence
+                if (shouldPlay) {
+                    if (m < 12) {
+                        measures.push(...generateStringIsolationPattern(stringOpenNote));
+                    } else if (m < 20) {
+                        measures.push(...generatePositionDrill(stringOpenNote, 'low'));
+                    } else if (m < 26) {
+                        if (useWalkingBass && stringIdx <= 1) {
+                            measures.push(...generateWalkingBassPattern(stringOpenNote));
+                        } else {
+                            measures.push(...generateArpeggioPattern(stringOpenNote, m % 2 === 0 ? 'major' : 'minor'));
+                        }
                     } else {
-                        measures.push(...generateArpeggioPattern(stringOpenNote, m % 2 === 0 ? 'major' : 'minor'));
+                        measures.push(...generateScaleRun(stringOpenNote, m % 2 === 0));
                     }
-                } else if (m < 28) {
-                    // M25-28: All strings get scale runs
-                    measures.push(...generateScaleRun(stringOpenNote, m % 2 === 1));
                 } else {
-                    // M29-32: All strings get position drills
-                    measures.push(...generatePositionDrill(stringOpenNote, 'high'));
+                    measures.push(...generateBlankMeasure());
                 }
             }
         }
