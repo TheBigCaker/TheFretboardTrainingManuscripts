@@ -17,13 +17,15 @@ The application is a fully functional frontend built with Vite and vanilla JavaS
 -   **CAGED Chord Auto-Generation**: Implements a system to auto-generate multiple major and minor chord voicings across low, mid, and high fretboard positions, merging with a comprehensive database of over 100 chord positions. Includes a fallback mechanism for complex chords.
 -   **Text-Based Chord Diagrams**: Custom ASCII rendering for chord diagrams, displaying string indicators (x/o), fret position markers, and finger numbers (1-4) or dots. Diagrams are landscape oriented with strings running horizontally, properly ordered from thinnest (top) to thickest (bottom).
 -   **Educational Content**: Integrated music theory explanations, including detailed sections on understanding chord diagrams and progressions.
+-   **Progressive Web App (PWA)**: Full PWA implementation with service worker for offline functionality, installable on mobile devices (iOS/Android), custom app icons, and native app-like experience with standalone display mode.
 -   **Layout**: The page flow is optimized for learning: Scale Menu → GUI Fretboard → Training Tablature → Strings as Rows (dedicated view) → Interactive Key & Harmony.
 
 **System Design Choices:**
--   **Modularity**: Core logic in `main.js`, instrument tunings and scale definitions in `database.js`, chord data in `chord_shapes.json`.
--   **Performance**: Utilizes Vite for fast development and optimized production builds.
+-   **Modularity**: Core logic in `main.js`, instrument tunings and scale definitions in `database.js`, chord data in `chord_shapes.json`, PWA manifest and service worker in `public/`.
+-   **Performance**: Utilizes Vite for fast development and optimized production builds. Service worker caches static assets for offline access.
 -   **Responsiveness**: Tablature and fretboard visualizations dynamically update with user input.
 -   **Consistent Aesthetic**: Adherence to a monochrome, monospaced font aesthetic for all musical notation displays.
+-   **Mobile-First PWA**: Installable on iOS/Android devices with app icons (192x192, 512x512), manifest.json for app metadata, and service worker for offline functionality and caching.
 
 ## External Dependencies
 -   **Build Tool**: Vite
