@@ -1177,8 +1177,9 @@ function renderTextChordDiagram(chordData, instrumentKey = 'guitar_6') {
     
     const numStrings = tuning.tuning.length;
     
-    // Get string labels from tuning data (reverse order: thickest to thinnest for display)
-    const stringNames = tuning.tuning.map(s => s.label).reverse();
+    // Get string labels from tuning data
+    // tuning.tuning is ordered: [thinnest...thickest] (e.g., [e, B, G, D, A, E])
+    const stringLabels = tuning.tuning.map(s => s.label);
     
     // Find the highest fret used (for display range)
     const maxFret = Math.max(...frets.filter(f => f > 0));
@@ -1198,8 +1199,9 @@ function renderTextChordDiagram(chordData, instrumentKey = 'guitar_6') {
     // Build the landscape fretboard
     diagram += '<div class="chord-fretboard-landscape">\n';
     
-    // For each string (thinnest at top, thickest at bottom)
-    for (let stringIdx = numStrings - 1; stringIdx >= 0; stringIdx--) {
+    // Display strings from thinnest (top) to thickest (bottom)
+    // Loop from index 0 (thinnest) to numStrings-1 (thickest)
+    for (let stringIdx = 0; stringIdx < numStrings; stringIdx++) {
         diagram += '<div class="chord-string-row">\n';
         
         // String name and x/o indicator on left
@@ -1213,7 +1215,7 @@ function renderTextChordDiagram(chordData, instrumentKey = 'guitar_6') {
             indicator = ' ';
         }
         
-        diagram += `<div class="chord-string-label">${stringNames[numStrings - 1 - stringIdx]} ${indicator}</div>`;
+        diagram += `<div class="chord-string-label">${stringLabels[stringIdx]} ${indicator}</div>`;
         
         // Draw nut or edge
         if (startFret === 0) {
@@ -1463,40 +1465,20 @@ function generateSimpleFallback(chordName, instrumentKey = 'guitar_6') {
     }
 }
 
-// Initialize the Circle of Fifths and harmony section
+// Initialize the harmony section using Root Note from top menu
 function initializeKeyHarmonySection() {
-    const circleOfFifths = document.querySelector('.circle-of-fifths');
-    if (!circleOfFifths) return;
-
-    // Circle of fifths keys in order
-    const keys = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯', 'D♭', 'A♭', 'E♭', 'B♭', 'F'];
+    // Get the root note from the top menu
+    const rootSelect = document.getElementById('rootSelect');
+    if (!rootSelect) return;
     
-    // Position keys in a circle
-    const radius = 120;
-    const centerX = 150;
-    const centerY = 150;
+    // Initialize with current root note selection
+    const currentRoot = rootSelect.value || 'C';
+    selectKey(currentRoot);
     
-    keys.forEach((key, index) => {
-        const angle = (index * 30 - 90) * (Math.PI / 180); // 30 degrees apart, start at top
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-        
-        const keyButton = document.createElement('button');
-        keyButton.className = 'key-button';
-        keyButton.textContent = key;
-        keyButton.style.left = `${x}px`;
-        keyButton.style.top = `${y}px`;
-        keyButton.style.transform = 'translate(-50%, -50%)';
-        
-        keyButton.addEventListener('click', () => setActiveKey(key));
-        circleOfFifths.appendChild(keyButton);
+    // Listen for changes to root note and update harmony section
+    rootSelect.addEventListener('change', function() {
+        selectKey(this.value);
     });
-    
-    // Select C major by default
-    setTimeout(() => {
-        const cButton = circleOfFifths.querySelector('.key-button');
-        if (cButton) cButton.click();
-    }, 100);
 }
 
 // Handle key selection
@@ -1763,31 +1745,7 @@ window.onload = async () => {
 // Global state for tab data
 let manuscriptTabData = null;
 
-// Centralized key selection function - syncs Circle of Fifths AND Root Note dropdown
-function setActiveKey(key) {
-    // Update Circle of Fifths button state
-    document.querySelectorAll('.key-button').forEach(btn => {
-        if (btn.textContent === key) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-    
-    // Update Root Note dropdown to match
-    const rootSelect = document.getElementById('rootSelect');
-    if (rootSelect) {
-        for (let i = 0; i < rootSelect.options.length; i++) {
-            if (rootSelect.options[i].textContent === key) {
-                rootSelect.selectedIndex = i;
-                break;
-            }
-        }
-    }
-    
-    // Update diatonic chords
-    selectKey(key);
-}
+// Removed setActiveKey - now using Root Note dropdown directly
 
 // Load and parse CSV
 async function loadTabCsv() {
