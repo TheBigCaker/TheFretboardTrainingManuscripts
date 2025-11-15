@@ -1,5 +1,5 @@
 import { TUNINGS, SCALES } from './database.js';
-import { generatePedagogicalTab } from './tab_generator.js';
+import { generateTabFromCSV } from './csv_tab_parser.js';
 // --- CONSTANTS ---
 const FRET_SPACING = 75; // Standard width for each fret segment in the GUI (in px)
 const STRING_PITCH_GAP = 40; // Vertical gap between strings (in px)
@@ -1740,8 +1740,8 @@ window.onload = async () => {
     initializeKeyHarmonySection(); // Setup the interactive harmony section
     initializeAccordions(); // Initialize all accordion elements
     
-    // Generate initial tab algorithmically
-    generateTabForCurrentSettings();
+    // Generate initial tab from CSV template
+    await generateTabForCurrentSettings();
     renderAllPhases();
     console.log('Initial tab generated successfully');
     
@@ -1769,9 +1769,26 @@ window.onload = async () => {
 
 // Global state for tab data
 let manuscriptTabData = null;
+let csvTemplateText = null;
 
-// Generate tab algorithmically instead of loading CSV
-function generateTabForCurrentSettings() {
+// Load the CSV template
+async function loadCSVTemplate() {
+    try {
+        const response = await fetch('/C_Major_Template.csv');
+        if (!response.ok) {
+            throw new Error(`Failed to load CSV template: ${response.status}`);
+        }
+        csvTemplateText = await response.text();
+        console.log('CSV template loaded successfully');
+        return csvTemplateText;
+    } catch (error) {
+        console.error('Error loading CSV template:', error);
+        return null;
+    }
+}
+
+// Generate tab from CSV template
+async function generateTabForCurrentSettings() {
     const rootSelect = document.getElementById('rootSelect');
     const instrumentSelect = document.getElementById('instrumentFilter');
     const modeSelect = document.getElementById('modeSelect');
@@ -1789,9 +1806,6 @@ function generateTabForCurrentSettings() {
     // Get root note name
     const rootNote = CHROMATIC_NOTES[selectedRootIndex].name;
     
-    // Get scale intervals from modeSelect value
-    const scaleIntervals = modeSelect.value.split(',').map(i => parseInt(i));
-    
     // Get instrument tuning
     const instrumentTuning = TUNINGS[selectedInstrument];
     if (!instrumentTuning) {
@@ -1799,19 +1813,29 @@ function generateTabForCurrentSettings() {
         return;
     }
     
+    // Load CSV template if not already loaded
+    if (!csvTemplateText) {
+        csvTemplateText = await loadCSVTemplate();
+        if (!csvTemplateText) {
+            console.error('Failed to load CSV template');
+            return null;
+        }
+    }
+    
     console.log(`Generating tab for: ${rootNote} ${selectedMode} on ${instrumentTuning.name}`);
     
-    // Generate tab algorithmically
-    manuscriptTabData = generatePedagogicalTab(instrumentTuning, rootNote, scaleIntervals);
+    // Generate tab from CSV template
+    const tuningArray = instrumentTuning.tuning;
+    manuscriptTabData = await generateTabFromCSV(csvTemplateText, tuningArray, rootNote, 15);
     
     console.log('Tab generated successfully');
     return manuscriptTabData;
 }
 
 // Regenerate tablature when instrument/root/scale selections change
-function regenerateTabForCurrentSettings() {
+async function regenerateTabForCurrentSettings() {
     // Generate new tab with current settings
-    generateTabForCurrentSettings();
+    await generateTabForCurrentSettings();
     
     // Get instrument for rendering
     const instrumentSelect = document.getElementById('instrumentFilter');
