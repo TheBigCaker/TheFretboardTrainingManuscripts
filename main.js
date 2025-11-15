@@ -1471,28 +1471,48 @@ function initializeKeyHarmonySection() {
     const rootSelect = document.getElementById('rootSelect');
     if (!rootSelect) return;
     
+    // Get the text content of the selected option (note name, not index)
+    const getSelectedRootNote = () => {
+        const selectedOption = rootSelect.options[rootSelect.selectedIndex];
+        return selectedOption ? selectedOption.textContent : 'C';
+    };
+    
     // Initialize with current root note selection
-    const currentRoot = rootSelect.value || 'C';
+    const currentRoot = getSelectedRootNote();
+    console.log('Initializing harmony section with key:', currentRoot);
     selectKey(currentRoot);
     
     // Listen for changes to root note and update harmony section
     rootSelect.addEventListener('change', function() {
-        selectKey(this.value);
+        const newRoot = getSelectedRootNote();
+        console.log('Root note changed to:', newRoot);
+        selectKey(newRoot);
     });
 }
 
 // Handle key selection
 function selectKey(key) {
+    console.log('selectKey called with:', key);
+    
     // Normalize key for Tonal.js (convert Unicode ♯ to ASCII #)
     const normalizedKey = key.replace('♯', '#').replace('♭', 'b');
     
     // Get diatonic chords using Tonal.js
     const scale = Tonal.Scale.get(`${normalizedKey} major`);
+    console.log('Scale for', normalizedKey, 'major:', scale);
+    
+    if (!scale.notes || scale.notes.length === 0) {
+        console.error('Failed to get scale notes for:', normalizedKey);
+        return;
+    }
+    
     const chordNames = scale.notes.map((note, index) => {
         // Build triads: I, ii, iii, IV, V, vi, vii°
         const quality = ['', 'm', 'm', '', '', 'm', 'dim'][index];
         return note + quality;
     });
+    
+    console.log('Chord names:', chordNames);
     
     // Display diatonic chords
     const chordDisplay = document.getElementById('diatonic-chords-display');
