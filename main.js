@@ -442,14 +442,13 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
                 }
             }
             
-            // Phase 4: Arpeggios (M16-24)
+            // Phase 4: Arpeggios & Walking Bass (M16-24)
             for (let m = 15; m < 24; m++) {
-                if ((m - 15) % 3 === stringIdx % 3) {
-                    if (useWalkingBass && stringIdx <= 1) {
-                        measures.push(...generateWalkingBassPattern(stringNote));
-                    } else {
-                        measures.push(...generateArpeggioPattern(stringNote, m % 2 === 0 ? 'major' : 'minor'));
-                    }
+                // Bass low strings get comprehensive walking patterns
+                if (useWalkingBass && stringIdx <= 1) {
+                    measures.push(...generateWalkingBassPattern(stringNote));
+                } else if ((m - 15) % 3 === stringIdx % 3) {
+                    measures.push(...generateArpeggioPattern(stringNote, m % 2 === 0 ? 'major' : 'minor'));
                 } else {
                     measures.push(...generateBlankMeasure());
                 }
@@ -501,11 +500,39 @@ function generateComprehensiveTabForInstrument(instrumentKey, config = {}) {
 // --- END TABLATURE GENERATOR SYSTEM ---
 
 
-// --- AUTO-GENERATED: 4-STRING BASS CONSTANTS (EADG) ---
+// --- AUTO-GENERATED: ALL INSTRUMENT TABLATURE CONSTANTS ---
+
+// 4-String Bass (EADG)
 const bassGenerated = generateComprehensiveTabForInstrument('bass_4', { useWalkingBass: true });
 const C_MAJOR_BASS_TAB = bassGenerated.tab;
 const C_MAJOR_BASS_NOTE_MAP = bassGenerated.noteMap;
-// --- END 4-STRING BASS CONSTANTS ---
+
+// 5-String Bass (BEADG)
+const bass5Generated = generateComprehensiveTabForInstrument('bass_5', { useWalkingBass: true });
+const C_MAJOR_BASS_5_TAB = bass5Generated.tab;
+const C_MAJOR_BASS_5_NOTE_MAP = bass5Generated.noteMap;
+
+// Mandolin (GDAE)
+const mandolinGenerated = generateComprehensiveTabForInstrument('mandolin');
+const C_MAJOR_MANDOLIN_TAB = mandolinGenerated.tab;
+const C_MAJOR_MANDOLIN_NOTE_MAP = mandolinGenerated.noteMap;
+
+// 5-String Banjo (gDGBD)
+const banjoGenerated = generateComprehensiveTabForInstrument('banjo_5', { useDroneString: true });
+const C_MAJOR_BANJO_TAB = banjoGenerated.tab;
+const C_MAJOR_BANJO_NOTE_MAP = banjoGenerated.noteMap;
+
+// Ukulele (GCEA)
+const ukuleleGenerated = generateComprehensiveTabForInstrument('ukulele');
+const C_MAJOR_UKULELE_TAB = ukuleleGenerated.tab;
+const C_MAJOR_UKULELE_NOTE_MAP = ukuleleGenerated.noteMap;
+
+// 7-String Guitar (BEADGBe)
+const guitar7Generated = generateComprehensiveTabForInstrument('guitar_7');
+const C_MAJOR_GUITAR_7_STRING_TAB = guitar7Generated.tab;
+const C_MAJOR_GUITAR_7_STRING_NOTE_MAP = guitar7Generated.noteMap;
+
+// --- END AUTO-GENERATED TABLATURE CONSTANTS ---
 
 
 // --- LEGACY BASS (REPLACED BY GENERATOR) ---
@@ -594,237 +621,10 @@ const C_MAJOR_BASS_TAB_OLD = {
 // --- END LEGACY BASS DATA ---
 
 
-// --- RE-COMPOSED: MANDOLIN CONSTANTS (GDAE) ---
-// --- This loop is 8 measures, repeated 4 times ---
-const C_MAJOR_MANDOLIN_8_MEASURE_LOOP = {
-    'E5': [
-        // C Major Scale (Pos 1) (M1-2) - 8th notes
-        '0','-','1','-','3','-','5','-','5','-','3','-','1','-','-','-', // M1
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M2
-        // C Arpeggio (Pos 1) (M3-4) - 8th notes
-        '0','-','-','-','5','-','-','-','0','-','-','-','5','-','-','-', // M3
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M4
-        // F Arpeggio (Pos 1) (M5-6) - 8th notes
-        '1','-','-','-','5','-','-','-','1','-','-','-','5','-','-','-', // M5
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M6
-        // G Arpeggio (Pos 1) (M7-8) - 8th notes
-        '3','-','-','-','7','-','-','-','3','-','-','-','7','-','-','-', // M7
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
-    ],
-    'A4': [
-        // C Major Scale (Pos 1) (M1-2) - 8th notes
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M1
-        '0','-','2','-','3','-','-','-','3','-','2','-','0','-','-','-', // M2
-        // C Arpeggio (Pos 1) (M3-4) - 8th notes
-        '3','-','-','-','-','-','-','-','3','-','-','-','-','-','-','-', // M3
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M4
-        // F Arpeggio (Pos 1) (M5-6) - 8th notes
-        '0','-','-','-','-','-','-','-','0','-','-','-','-','-','-','-', // M5
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M6
-        // G Arpeggio (Pos 1) (M7-8) - 8th notes
-        '2','-','-','-','-','-','-','-','2','-','-','-','-','-','-','-', // M7
-        '5','-','-','-','-','-','-','-','5','-','-','-','-','-','-','-', // M8
-    ],
-    'D4': [
-        // C Major Scale (Pos 1) (M1-2) - 8th notes
-        '0','-','2','-','3','-','5','-','5','-','3','-','2','-','0','-', // M1
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M2
-        // C Arpeggio (Pos 1) (M3-4) - 8th notes
-        '2','-','-','-','-','-','-','-','2','-','-','-','-','-','-','-', // M3
-        '5','-','-','-','-','-','-','-','5','-','-','-','-','-','-','-', // M4
-        // F Arpeggio (Pos 1) (M5-6) - 8th notes
-        '3','-','-','-','-','-','-','-','3','-','-','-','-','-','-','-', // M5
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M6
-        // G Arpeggio (Pos 1) (M7-8) - 8th notes
-        '0','-','-','-','-','-','-','-','0','-','-','-','-','-','-','-', // M7
-        '5','-','-','-','-','-','-','-','5','-','-','-','-','-','-','-', // M8
-    ],
-    'G3': [
-        // C Major Scale (Pos 1) (M1-2) - 8th notes
-        '0','-','2','-','4','-','-','-','-','-','-','-','-','-','-','-', // M1
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M2
-        // C Arpeggio (Pos 1) (M3-4) - 8th notes
-        '0','-','-','-','5','-','-','-','0','-','-','-','5','-','-','-', // M3
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M4
-        // F Arpeggio (Pos 1) (M5-6) - 8th notes
-        '1','-','-','-','5','-','-','-','1','-','-','-','5','-','-','-', // M5
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M6
-        // G Arpeggio (Pos 1) (M7-8) - 8th notes
-        '3','-','-','-','7','-','-','-','3','-','-','-','7','-','-','-', // M7
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
-    ],
-    'C2': [
-        // C Major Scale (Pos 1) (M1-2) - 8th notes
-        '3','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M1
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M2
-        // C Arpeggio (Pos 1) (M3-4) - 8th notes
-        '3','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M3
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M4
-        // F Arpeggio (Pos 1) (M5-6) - 8th notes
-        '1','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M5
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M6
-        // G Arpeggio (Pos 1) (M7-8) - 8th notes
-        '0','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M7
-        '0','-','-','-','-','-','-','-','0','-','-','-','-','-','-','-', // M8
-    ],
-};
-// Repeat the 8-measure loop to create the full 32-measure (512-beat) exercise
-const C_MAJOR_MANDOLIN_TAB = {
-    'E5': [
-        ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['E5'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['E5'],
-        ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['E5'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['E5']
-    ],
-    'A4': [
-        ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['A4'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['A4'],
-        ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['A4'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['A4']
-    ],
-    'D4': [
-        ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['D4'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['D4'],
-        ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['D4'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['D4']
-    ],
-    'G3': [
-        ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['G3'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['G3'],
-        ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['G3'], ...C_MAJOR_MANDOLIN_8_MEASURE_LOOP['G3']
-    ]
-};
-// --- UPDATED: Note map for new playable mandolin �tude ---
-const C_MAJOR_MANDOLIN_NOTE_MAP = {
-    'E5': { '0': 4, '1': 5, '3': 7, '5': 9, '7': 11 },
-    'A4': { '0': 9, '2': 11, '3': 12, '5': 14 },
-    'D4': { '0': 2, '2': 4, '3': 5, '5': 7 },
-    'G3': { '3': 10, '5': 12 } // Corrected G3 to G3
-};
-// --- END MANDOLIN CONSTANTS ---
 
 
-// --- RE-COMPOSED: 5-STRING BANJO CONSTANTS (gDGBD) ---
-// --- This loop is 8 measures, repeated 4 times ---
-const C_MAJOR_BANJO_8_MEASURE_LOOP = {
-    'G4': [ // High G Drone (String 5)
-        // C "Forward Roll" (M1-2)
-        '-','-','-','0','-','-','-','0','-','-','-','0','-','-','-','0', // M1
-        '-','-','-','0','-','-','-','0','-','-','-','0','-','-','-','0', // M2
-        // F "Forward Roll" (M3-4)
-        '-','-','-','0','-','-','-','0','-','-','-','0','-','-','-','0', // M3
-        '-','-','-','0','-','-','-','0','-','-','-','0','-','-','-','0', // M4
-        // G "Forward Roll" (M5-6)
-        '-','-','-','0','-','-','-','0','-','-','-','0','-','-','-','0', // M5
-        '-','-','-','0','-','-','-','0','-','-','-','0','-','-','-','0', // M6
-        // C Scale Riff (M7-8) - 8th notes
-        '0','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M7
-        '0','-','-','-','-','-','-','-','0','-','-','-','-','-','-','-', // M8
-    ],
-    'D4': [ // 1st String
-        // C "Forward Roll" (M1-2)
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M1
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M2
-        // F "Forward Roll" (M3-4)
-        '3','-','-','-','-','-','-','-','3','-','-','-','-','-','-','-', // M3
-        '3','-','-','-','-','-','-','-','3','-','-','-','-','-','-','-', // M4
-        // G "Forward Roll" (M5-6)
-        '0','-','-','-','-','-','-','-','0','-','-','-','-','-','-','-', // M5
-        '0','-','-','-','-','-','-','-','0','-','-','-','-','-','-','-', // M6
-        // C Scale Riff (M7-8) - 8th notes
-        '5','-','3','-','1','-','0','-','-','-','-','-','-','-','-','-', // M7
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
-    ],
-    'B3': [ // 2nd String
-        // C "Forward Roll" (M1-2)
-        '-','-','1','-','-','-','1','-','-','-','1','-','-','-','1','-', // M1
-        '-','-','1','-','-','-','1','-','-','-','1','-','-','-','1','-', // M2
-        // F "Forward Roll" (M3-4)
-        '-','-','3','-','-','-','3','-','-','-','3','-','-','-','3','-', // M3
-        '-','-','3','-','-','-','3','-','-','-','3','-','-','-','3','-', // M4
-        // G "Forward Roll" (M5-6)
-        '-','-','0','-','-','-','0','-','-','-','0','-','-','-','0','-', // M5
-        '-','-','0','-','-','-','0','-','-','-','0','-','-','-','0','-', // M6
-        // C Scale Riff (M7-8) - 8th notes
-        '-','-','-','-','-','-','-','-','3','-','1','-','0','-','-','-', // M7
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
-    ],
-    'G3': [ // 3rd String
-        // C "Forward Roll" (M1-2)
-        '-','0','-','-','-','0','-','-','-','0','-','-','-','0','-','-', // M1
-        '-','0','-','-','-','0','-','-','-','0','-','-','-','0','-','-', // M2
-        // F "Forward Roll" (M3-4)
-        '-','2','-','-','-','2','-','-','-','2','-','-','-','2','-','-', // M3
-        '-','2','-','-','-','2','-','-','-','2','-','-','-','2','-','-', // M4
-        // G "Forward Roll" (M5-6)
-        '-','0','-','-','-','0','-','-','-','0','-','-','-','-','0','-','-','-','-','-','-','-', // M5
-        '-','0','-','-','-','0','-','-','-','0','-','-','-','0','-','-', // M6
-        // C Scale Riff (M7-8) - 8th notes
-        '0','-','2','-','4','-','5','-','5','-','4','-','2','-','0','-', // M7
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
-    ],
-    'D3': [ // 4th String
-        // C "Forward Roll" (M1-2)
-        '2','-','-','-','2','-','-','-','2','-','-','-','2','-','-','-', // M1
-        '2','-','-','-','2','-','-','-','2','-','-','-','2','-','-','-', // M2
-        // F "Forward Roll" (M3-4)
-        '3','-','-','-','3','-','-','-','3','-','-','-','3','-','-','-', // M3
-        '3','-','-','-','3','-','-','-','3','-','-','-','3','-','-','-', // M4
-        // G "Forward Roll" (M5-6)
-        '0','-','-','-','0','-','-','-','0','-','-','-','0','-','-','-', // M5
-        '0','-','-','-','0','-','-','-','0','-','-','-','0','-','-','-', // M6
-        // C Scale Riff (M7-8) - 8th notes
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M7
-        '5','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
-    ],
-};
-const C_MAJOR_BANJO_TAB = {
-    'G4': [...C_MAJOR_BANJO_8_MEASURE_LOOP['G4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G4']],
-    'D4': [...C_MAJOR_BANJO_8_MEASURE_LOOP['D4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D4'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D4']],
-    'B3': [...C_MAJOR_BANJO_8_MEASURE_LOOP['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['B3']],
-    'G3': [...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['G3']],
-    'D3': [...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3'], ...C_MAJOR_BANJO_8_MEASURE_LOOP['D3']]
-};
-// --- UPDATED: Note map for new playable banjo �tude ---
-const C_MAJOR_BANJO_NOTE_MAP = {
-    'G4': { '0': 7 }, // Drone string
-    'D4': { '0': 2, '1': 3, '3': 5, '5': 7 },
-    'B3': { '0': 11, '1': 12, '3': 14 },
-    'G3': { '0': 7, '2': 9, '4': 11, '5': 12 },
-    'D3': { '0': 2, '2': 4, '3': 5, '5': 7 }
-};
-// --- END 5-STRING BANJO CONSTANTS ---
 
 
-// --- RE-COMPOSED: 7-STRING GUITAR CONSTANTS (BEADGBe) ---
-// --- This loop is 8 measures, repeated 4 times ---
-const C_MAJOR_GUITAR_7_STRING_8_MEASURE_LOOP = {
-    'B1': [ 
-        // C Scale Riff (M1-2) - 8th notes
-        '1','-','3','-','5','-','-','-','5','-','3','-','1','-','-','-', // M1
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M2
-        // C Arpeggio (Pos 1) (M3-4) - 8th notes
-        '1','-','-','-','5','-','-','-','8','-','-','-','5','-','-','-', // M3
-        '1','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M4
-        // F Arpeggio (Pos 1) (M5-6) - 8th notes
-        '-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M5
-        '1','-','-','-','6','-','-','-','10','-','-','-','6','-','-','-', // M6
-        // G Arpeggio (Pos 1) (M7-8) - 8th notes
-        '3','-','-','-','8','-','-','-','12','-','-','-','8','-','-','-', // M7
-        '3','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-', // M8
-    ],
-};
-const C_MAJOR_GUITAR_7_STRING_TAB = {
-    'e4': [...C_MAJOR_BASE_TAB['e4']], // Reuse 6-string part
-    'B3': [...C_MAJOR_BASE_TAB['B3']], // Reuse 6-string part
-    'G3': [...C_MAJOR_BASE_TAB['G3']], // Reuse 6-string part
-    'D3': [...C_MAJOR_BASE_TAB['D3']], // Reuse 6-string part
-    'A2': [...C_MAJOR_BASE_TAB['A2']], // Reuse 6-string part
-    'E2': [...C_MAJOR_BASE_TAB['E2']], // Reuse 6-string part
-    'B1': [ // New 32-measure part (8-measure loop repeated 4x)
-        ...C_MAJOR_GUITAR_7_STRING_8_MEASURE_LOOP['B1'], ...C_MAJOR_GUITAR_7_STRING_8_MEASURE_LOOP['B1'],
-        ...C_MAJOR_GUITAR_7_STRING_8_MEASURE_LOOP['B1'], ...C_MAJOR_GUITAR_7_STRING_8_MEASURE_LOOP['B1']
-    ],
-};
-// --- UPDATED: Note map for new 7-string part ---
-const C_MAJOR_GUITAR_7_STRING_NOTE_MAP = {
-    ...C_MAJOR_BASE_NOTE_MAP, // Inherit all 6-string maps
-    'B1': { '1': 12, '3': 14, '5': 16, '6': 17, '8': 19, '10': 21, '12': 23 } // Add B1 frets
-};
-// --- END 7-STRING GUITAR CONSTANTS ---
 
 
 // --- CORE LOGIC FUNCTIONS ---
@@ -2188,3 +1988,4 @@ function stopManuscript() {
     Tone.Transport.cancel();
     console.log('Playback stopped');
 }
+
