@@ -1,5 +1,6 @@
 import { TUNINGS, SCALES } from './database.js';
 import { generateTabFromCSV } from './csv_tab_parser.js';
+import { sanitizeStretchesInTab } from './tab_generator.js';
 // --- CONSTANTS ---
 const FRET_SPACING = 75; // Standard width for each fret segment in the GUI (in px)
 const STRING_PITCH_GAP = 40; // Vertical gap between strings (in px)
@@ -1854,6 +1855,12 @@ async function generateTabForCurrentSettings() {
     const tuningArray = instrumentTuning.tuning;
     manuscriptTabData = await generateTabFromCSV(csvTemplateText, tuningArray, rootNote, 15);
     
+    // Apply stretch sanitization to prevent impossible finger positions
+    if (manuscriptTabData) {
+        const strings = tuningArray.map(s => `${s.label}${s.octave}`).reverse();
+        sanitizeStretchesInTab(manuscriptTabData, strings, 4);
+    }
+    
     console.log('Tab generated successfully');
     return manuscriptTabData;
 }
@@ -1989,7 +1996,7 @@ function renderAllPhasesForInstrument(instrumentKey) {
 }
 
 // Helper function to detect extreme finger stretches in a beat
-function detectFingerStretch(strings, beat, manuscriptData, maxComfortableStretch = 5) {
+function detectFingerStretch(strings, beat, manuscriptData, maxComfortableStretch = 4) {
     const activeFrets = [];
     
     // Collect all active (non-rest) fret numbers for this beat

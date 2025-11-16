@@ -354,6 +354,64 @@ function getMaxFretForInstrument(instrumentName) {
     return 15; // Default for guitars
 }
 
+// Helper function to sanitize tab and remove impossible stretches
+function sanitizeStretchesInTab(tab, strings, maxStretch = 4) {
+    const numBeats = 512;
+    let adjustmentCount = 0;
+    
+    // Scan each beat
+    for (let beat = 0; beat < numBeats; beat++) {
+        let needsRecheck = true;
+        let iterationCount = 0;
+        const MAX_ITERATIONS = 10; // Prevent infinite loops
+        
+        // Iteratively remove outliers until stretch is within limits
+        while (needsRecheck && iterationCount < MAX_ITERATIONS) {
+            iterationCount++;
+            needsRecheck = false;
+            
+            const activeFrets = [];
+            const activeFretIndices = [];
+            
+            // Collect all active frets at this beat position
+            strings.forEach((stringKey, idx) => {
+                const fret = tab[stringKey]?.[beat];
+                if (fret !== undefined && fret !== '' && fret !== '-') {
+                    const fretNum = parseInt(fret, 10);
+                    if (!isNaN(fretNum) && fretNum >= 0) {
+                        activeFrets.push(fretNum);
+                        activeFretIndices.push({ stringKey, idx, fret: fretNum });
+                    }
+                }
+            });
+            
+            // Check if we have a stretch problem
+            if (activeFrets.length >= 2) {
+                const minFret = Math.min(...activeFrets);
+                const maxFret = Math.max(...activeFrets);
+                const stretch = maxFret - minFret;
+                
+                if (stretch > maxStretch) {
+                    // Remove the highest fret (usually the problematic outlier)
+                    const highestFretEntry = activeFretIndices.find(entry => entry.fret === maxFret);
+                    
+                    if (highestFretEntry) {
+                        tab[highestFretEntry.stringKey][beat] = '-';
+                        adjustmentCount++;
+                        needsRecheck = true; // Re-check this beat after removal
+                    }
+                }
+            }
+        }
+    }
+    
+    if (adjustmentCount > 0) {
+        console.log(`Sanitized ${adjustmentCount} notes to prevent impossible stretches (>${maxStretch} frets)`);
+    }
+    
+    return tab;
+}
+
 // MAIN GENERATOR: Create complete 512-beat pedagogical tab
 export function generatePedagogicalTab(instrumentTuning, rootNote, scaleIntervals) {
     // Get scale notes
@@ -430,10 +488,17 @@ export function generatePedagogicalTab(instrumentTuning, rootNote, scaleInterval
         tab[stringKey] = measures;
     });
     
+    // POST-PROCESS: Remove impossible finger stretches
+    sanitizeStretchesInTab(tab, strings, 4);
+    
     return tab;
 }
 
-// Export for use in main.js
+// ES Module exports
+export { sanitizeStretchesInTab };
+
+// Also export to window for backwards compatibility
 if (typeof window !== 'undefined') {
     window.generatePedagogicalTab = generatePedagogicalTab;
+    window.sanitizeStretchesInTab = sanitizeStretchesInTab;
 }
