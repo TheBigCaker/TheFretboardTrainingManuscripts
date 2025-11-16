@@ -1851,6 +1851,12 @@ async function generateTabForCurrentSettings() {
     
     console.log(`Generating tab for: ${rootNote} ${selectedMode} on ${instrumentTuning.name}`);
     
+    // Update the manuscript subtitle to show current key and scale
+    const subtitleElement = document.getElementById('manuscript-subtitle');
+    if (subtitleElement) {
+        subtitleElement.textContent = `Complete ${rootNote} ${selectedMode} Training Tablature`;
+    }
+    
     // Generate tab from CSV template
     const tuningArray = instrumentTuning.tuning;
     manuscriptTabData = await generateTabFromCSV(csvTemplateText, tuningArray, rootNote, 15);
