@@ -1635,6 +1635,7 @@ function displayProgressions(key, chordNames) {
 }
 
 function initializeAccordions() {
+    // Handle old-style accordions (.accordion-container)
     const accordions = document.querySelectorAll('.accordion-container');
     accordions.forEach(accordion => {
         const header = accordion.querySelector('.accordion-header');
@@ -1651,6 +1652,31 @@ function initializeAccordions() {
                 content.style.maxHeight = content.scrollHeight + "px";
             }
         });
+    });
+
+    // Handle new-style accordions (.accordion-item with .accordion-button)
+    const accordionItems = document.querySelectorAll('.accordion-item');
+    accordionItems.forEach(item => {
+        const button = item.querySelector('.accordion-button');
+        const content = item.querySelector('.accordion-content');
+
+        if (button && content) {
+            button.addEventListener('click', () => {
+                const isCollapsed = button.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    // Expand
+                    button.classList.remove('collapsed');
+                    button.setAttribute('aria-expanded', 'true');
+                    content.style.maxHeight = content.scrollHeight + "px";
+                } else {
+                    // Collapse
+                    button.classList.add('collapsed');
+                    button.setAttribute('aria-expanded', 'false');
+                    content.style.maxHeight = null;
+                }
+            });
+        }
     });
 }
 

@@ -195,6 +195,93 @@ select, button, input[type="number"] {
     transform: rotate(45deg);
 }
 
+/* Accordion Item Structure (for Six-Module System) */
+.accordion-item {
+    margin-bottom: 0.75rem;
+}
+
+.accordion-item .accordion-header {
+    margin: 0;
+    padding: 0;
+}
+
+.accordion-button {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.accordion-button:hover {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #eef2ff;
+    border-color: #c7d2fe;
+    color: #4338ca;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.accordion-button::after {
+    content: '+';
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #6b7280;
+    transition: transform 0.3s;
+}
+
+.accordion-button:not(.collapsed)::after {
+    content: '−';
+    color: #4338ca;
+}
+
+.accordion-item .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-top: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.accordion-item .accordion-content p {
+    padding: 0.875rem 1rem;
+    margin: 0 0 0.75rem 0;
+    color: #4b5563;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.accordion-item .accordion-content p:last-child {
+    margin-bottom: 0.5rem;
+}
+
+.accordion-item .accordion-content ul {
+    margin: 0;
+    padding: 0 1rem 0.875rem 1rem;
+}
+
+.accordion-item .accordion-content li {
+    color: #4b5563;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
 
 /* ===== MANUSCRIPT METHOD STYLING (Minimalist Design) ===== */
 

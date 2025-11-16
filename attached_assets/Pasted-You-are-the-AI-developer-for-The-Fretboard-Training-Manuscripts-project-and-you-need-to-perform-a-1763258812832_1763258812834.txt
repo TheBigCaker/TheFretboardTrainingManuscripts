@@ -1,0 +1,133 @@
+You are the AI developer for "The Fretboard Training Manuscripts" project, and you need to perform a critical content update on the website.
+
+Your task is to replace the outdated informational accordion content in index.html with the new, official, and highly-detailed "Six-Module System" pedagogy.
+
+You must modify the index.html file.
+
+Step 1: Locate the Target
+
+Find the <div id="info-accordion"> element in index.html.
+
+Step 2: Ingest the New, Detailed Content
+
+This is the new, official content that must be used. It is structured by "Modules":
+
+# Updated Informational Accordion Content (Detailed)
+*(Based on the "Six-Module System" Pedagogy)*
+
+---
+
+### ► What is The TFTM Method? (The Problem & The Solution)
+
+**The Basic Concept (The Problem):**
+Traditional music education is broken. It's fragmented. You're given a "box" pattern (like the minor pentatonic scale), a few chord diagrams, and some "licks." This leaves you with a mental "junk drawer" of disconnected, isolated pieces of information. You can play perfectly fine *inside* that one box, but you have no idea how to connect it to the rest of the neck. This creates a "glass ceiling" on your playing, leaving 90% of the fretboard as a sea of confusing "mystery notes." You never achieve true fluency.
+
+**The Fretboard Training Manuscripts (TFTM) Method (The Solution):**
+Our method is a **complete, data-driven, pedagogical engine** designed to fix this fundamental flaw. We don't give you disconnected fragments. We give you a single, unified "Foundational Etude"—a 512-beat, data-rich curriculum (the CSV manuscript file) that is executed by our visual training tool.
+
+This etude is a **Six-Module System** that logically builds your fretboard knowledge from the ground up. It systematically "de-bugs" your old, fragmented habits and installs a complete, holistic "operating system" for the fretboard. It is a logical curriculum that forces you to see and command the *entire* neck as one single, unified map.
+
+---
+
+### ► Module 1: Foundational Mechanics (Rhythm & Technique)
+
+**The Basic Concept:**
+Before you can play music, you must have control. This means playing with rhythmic precision (in time), coordinating your left and right hands, and playing each note cleanly. This is the #1 weakness of most self-taught players.
+
+**The Fretboard Training Manuscripts (TFTM) Method:**
+**Module 1** of our etude is dedicated to installing this "internal clock" and building your core technique. This is not a passive "tab viewer"; it is an active **"pedagogical engine"**.
+
+**How Our Tool Encapsulates This:**
+The scrolling, beat-by-beat visual guide is your unblinking metronome. It does not wait for you. It *forces* you to develop rock-solid timing and rhythmic accuracy from the very first note. The initial exercises are not random; they are specifically designed to build your "finger-per-fret" discipline and hand synchronization.
+
+This active-learning approach is critical. You are not just learning *what* notes to play; you are drilling *how* to play them with the accuracy, timing, and control of a professional. This module installs the non-negotiable physical and rhythmic foundation required for everything that follows.
+
+---
+
+### ► Modules 2 & 3: Total Scale Mastery (Deconstructing "The Box")
+
+**The Basic Concept:**
+A scale is the "alphabet" of a key (e.g., C Major = C, D, E, F, G, A, B). Almost every teacher will show you this scale in a "box pattern." This is the single biggest reason players get "stuck." The "box" is a crutch. It's a temporary shortcut that becomes a permanent prison, locking you into one small area and preventing you from ever seeing the larger picture.
+
+**The Fretboard Training Manuscripts (TFTM) Method:**
+Our pedagogy **systematically eradicates** this "box" dependency by building your mental map in two distinct, logical steps:
+
+* **Module 2: Horizontal Knowledge (The "Highways"):** The etude *first* drills you on the C Major scale *horizontally*, up and down the *entire length* of each individual string. This is the "raw data" of the fretboard that is almost *always* skipped in traditional lessons. Our tool forces you to learn this "index" of the neck, ensuring you have no "dead spots" or "mystery frets." You will learn, for example, every single 'C' note from one end of the instrument to the other.
+
+* **Module 3: Vertical Knowledge (The "Intersections"):** *Only after* you have this horizontal map does the etude guide you *vertically*. Our tool drills you in positions (like the 7 positions of the major scale, which the "CAGED" system is based on). But now, they are not "isolated boxes." You will instantly see them for what they are: simple *intersections* that connect the horizontal "highways" you just mastered in Module 2.
+
+This two-step process ensures you see the fretboard as **one unified, interconnected system**. You will be able to find any note, in any key, anywhere on the neck, instantly, and move between positions with fluid, effortless confidence.
+
+---
+
+### ► Module 4: True Harmonic Context (Chords & Arpeggios)
+
+**The Basic Concept:**
+Chords (notes played together) and Arpeggios (notes played one-by-one) are what give music its emotional depth. A C Major chord is built from the **1st, 3rd, and 5th** notes of the C Major scale: **C, E, and G**. Knowing *why* it's C-E-G, and knowing where those three notes are everywhere on the neck, is the true key to improvisation.
+
+**The Fretboard Training Manuscripts (TFTM) Method:**
+This is **Module 4**, and it's where our system connects all the dots. Running up and down scales (Modules 2 & 3) is a technical exercise. But "outlining the changes"—hitting the chord tones (C, E, G) at the exact moment the C Major chord is playing—is what sounds *professional*.
+
+**How Our Tool Encapsulates This:**
+Because you *mastered* the locations of all the C's, E's, and G's in the previous modules, our etude's harmonic exercises are the logical next step:
+
+* **Chords:** Our tool drills "triad inversions" (different C-E-G voicings) all over the neck. You are not *memorizing* random, disconnected shapes; you are *building* harmony from the scale-tone "database" you already have in your head.
+
+* **Arpeggios:** The tool's visual guide will "light up" these C-E-G arpeggio pathways *inside* the scale patterns you've already learned. You are systematically training your fingers, mind, and ear to "see" the chord structure *within* the scale structure. This is the single most powerful skill for melodic improvisation, and our tool is designed to build it directly into your playing.
+
+---
+
+### ► Modules 5 & 6: From Foundation to Virtuosity (Application)
+
+**The Basic Concept:**
+Once you have the complete map (Modules 2 & 3) and you understand the harmony (Module 4), it's time to build a "vocabulary" of musical ideas and the technical facility to play them. This is where you build speed, dexterity, and true creative expression.
+
+**The Fretboard Training Manuscripts (TFTM) Method:**
+The final two modules are your path to complete fluency:
+
+* **Module 5: Virtuosic Integration:** Your unbreakable foundation is now in place. This module introduces complex sequences that combine everything you've learned. Our tool will drill you on 3-note-per-string patterns, melodic fragments (like "diatonic 3rds and 4ths"), and other "shred" techniques. This is where you build blazing speed and a "vocabulary" of professional-sounding licks, all perfectly in time and contextually aware of the key.
+
+* **Module 6: Holistic Descents (The "Victory Lap"):** This is the final *proof* of your mastery. The etude guides you in "super-scales" that span the *entire* length of the fretboard—from the lowest note to the highest and back down—in one single, unbroken, fluid motion. This exercise shatters any remaining "box" habits and solidifies in your muscle memory that you command the *entire* instrument as one single, playable zone. You no longer "know" positions; you *know the fretboard*.
+
+
+Step 3: Perform the Replacement
+
+Delete all the div.accordion-item elements currently inside <div id="info-accordion">.
+
+Generate new div.accordion-item elements for each of the five sections in the new content (TFTM Method, Module 1, Modules 2&3, Module 4, Modules 5&6).
+
+You MUST use the following HTML structure for each new item. This is critical to match the existing CSS and JavaScript functionality:
+
+<!-- THIS IS THE TEMPLATE FOR ONE ACCORDION ITEM -->
+<div class="accordion-item">
+  <h3 class="accordion-header">
+    <button type="button" class="accordion-button collapsed" aria-expanded="false">
+      <!-- The title from the '### ►' line goes here -->
+      <!-- e.g., "What is The TFTM Method? (The Problem & The Solution)" -->
+      TITLE GOES HERE
+    </button>
+  </h3>
+  <div class="accordion-content">
+    <!-- 
+    All content for that section goes here.
+    - Wrap each paragraph in a <p> tag.
+    - Convert Markdown `**bold**` to `<strong>bold</strong>`.
+    - For sub-headings like "**The Basic Concept (The Problem):**", put them in a <p> tag with a <strong> tag and a <br> tag after the colon.
+    - e.g.: <p><strong>The Basic Concept (The Problem):</strong><br>Traditional music education is broken...</p>
+    -->
+    <p><strong>The Basic Concept (The Problem):</strong><br>...content...</p>
+    <p><strong>The Fretboard Training Manuscripts (TFTM) Method (The Solution):</strong><br>...content...</p>
+    <!-- 
+      For sections with sub-bullets like Modules 2&3 and Module 4, do this:
+      <p><strong>The Fretboard Training Manuscripts (TFTM) Method:</strong><br>...content...</p>
+      <ul>
+        <li><strong>Module 2: Horizontal Knowledge (The "Highways"):</strong> ...content...</li>
+        <li><strong>Module 3: Vertical Knowledge (The "Intersections"):</strong> ...content...</li>
+      </ul>
+    -->
+  </div>
+</div>
+<!-- END OF TEMPLATE -->
+
+
+Please generate the complete, updated index.html file with the new, highly-detailed accordion content correctly injected.
