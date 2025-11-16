@@ -14,9 +14,11 @@ export async function getUserSubscriptionTier() {
       };
     }
 
-    const memberOrders = await orders.listCurrentMemberOrders({
+    const response = await orders.listCurrentMemberOrders({
       status: ['ACTIVE']
     });
+    
+    const memberOrders = response.orders || [];
 
     if (memberOrders.length === 0) {
       return {
@@ -28,7 +30,9 @@ export async function getUserSubscriptionTier() {
       };
     }
 
-    const activeOrder = memberOrders[0];
+    const activeOrder = memberOrders.sort((a, b) => 
+      new Date(b.startDate) - new Date(a.startDate)
+    )[0];
     const planName = activeOrder.planName || '';
     const tier = determineTierFromPlanName(planName);
     
